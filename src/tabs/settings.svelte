@@ -5,7 +5,6 @@
 
   import { languageStore, t, type Language } from "../lib/i18n"
   import { storage, STORAGE_KEYS } from "../lib/storage"
-  import { themeStore } from "../lib/store"
   import { THEME_TOKENS, type ThemeMode } from "../lib/theme-tokens"
 
   let effectiveTheme: ThemeMode = "light"
@@ -17,9 +16,6 @@
 
   $: tokens = THEME_TOKENS.generic[effectiveTheme]
 
-  themeStore.subscribe((val) => {
-    effectiveTheme = val === "auto" ? "light" : val
-  })
   languageStore.subscribe((val) => (currentLang = val))
 
   onMount(async () => {
@@ -60,10 +56,6 @@
     storage.set("defaultAction", action)
   }
 
-  function setTheme(theme: "light" | "dark" | "auto") {
-    themeStore.set(theme)
-  }
-
   function setLanguage(lang: Language) {
     languageStore.set(lang)
   }
@@ -92,46 +84,6 @@
       <div
         class="space-y-4 p-4 rounded-lg"
         style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border};">
-        <!-- Theme -->
-        <div class="flex items-center justify-between">
-          <div>
-            <div class="font-medium">{$t("settings.theme")}</div>
-            <div class="text-xs" style="color: {tokens.textSecondary};">
-              Choose light, dark, or auto theme
-            </div>
-          </div>
-          <div
-            class="flex gap-1 p-1 rounded-lg"
-            style="background: {tokens.bg};">
-            <button
-              on:click={() => setTheme("light")}
-              class="px-3 py-1.5 text-sm rounded-md transition-colors"
-              style="background: {effectiveTheme === 'light'
-                ? tokens.accent
-                : 'transparent'}; color: {effectiveTheme === 'light'
-                ? tokens.bg
-                : tokens.text};">
-              {$t("theme.light")}
-            </button>
-            <button
-              on:click={() => setTheme("dark")}
-              class="px-3 py-1.5 text-sm rounded-md transition-colors"
-              style="background: {effectiveTheme === 'dark'
-                ? tokens.accent
-                : 'transparent'}; color: {effectiveTheme === 'dark'
-                ? tokens.bg
-                : tokens.text};">
-              {$t("theme.dark")}
-            </button>
-            <button
-              on:click={() => setTheme("auto")}
-              class="px-3 py-1.5 text-sm rounded-md transition-colors"
-              style="background: transparent; color: {tokens.text};">
-              {$t("theme.auto")}
-            </button>
-          </div>
-        </div>
-
         <!-- Language -->
         <div class="flex items-center justify-between">
           <div>
