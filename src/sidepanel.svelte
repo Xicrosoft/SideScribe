@@ -293,10 +293,11 @@
         type="text"
         bind:value={searchQuery}
         placeholder={$t("search.placeholder")}
-        class="w-full pl-9 pr-3 py-2 text-sm focus:outline-none transition-all"
+        class="search-input w-full pl-9 pr-3 py-2 text-sm transition-all"
         style="
           background: {tokens.bg};
-          border: 1px solid {tokens.border};
+          --border-color: {tokens.border};
+          --focus-border-color: {tokens.accent};
           border-radius: 8px;
           color: {tokens.text};
         " />
@@ -363,5 +364,12 @@
   :global(.overflow-y-auto::-webkit-scrollbar-thumb) {
     background-color: rgba(128, 128, 128, 0.3);
     border-radius: 3px;
+  }
+  .search-input {
+    border: 1px solid var(--border-color);
+    outline: none;
+  }
+  .search-input:focus {
+    border-color: var(--focus-border-color);
   }
 </style>
