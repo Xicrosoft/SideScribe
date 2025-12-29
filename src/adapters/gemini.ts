@@ -218,11 +218,49 @@ export class GeminiAdapter implements ISiteAdapter {
         }, 1000)
     }
 
+    private getScrollParent(node: HTMLElement): HTMLElement {
+        let parent = node.parentElement
+        while (parent) {
+            const style = window.getComputedStyle(parent)
+            if (['scroll', 'auto'].includes(style.overflowY)) {
+                return parent
+            }
+            parent = parent.parentElement
+        }
+        return document.documentElement
+    }
+
+    private scrollWithOffset(el: HTMLElement) {
+        const offset = window.innerHeight * 0.15
+        const container = this.getScrollParent(el)
+
+        if (container === document.documentElement || container === document.body) {
+            const elementPosition = el.getBoundingClientRect().top + window.pageYOffset
+            const offsetPosition = elementPosition - offset
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: "smooth"
+            })
+        } else {
+            const elRect = el.getBoundingClientRect()
+            const containerRect = container.getBoundingClientRect()
+            const currentScroll = container.scrollTop
+            const diff = elRect.top - containerRect.top
+            const target = currentScroll + diff - offset
+
+            container.scrollTo({
+                top: target,
+                behavior: "smooth"
+            })
+        }
+    }
+
     scrollTo(id: string): boolean {
         // Try cached element first
         const cachedEl = this.nodeElementMap.get(id)
         if (cachedEl && document.contains(cachedEl)) {
-            cachedEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            this.scrollWithOffset(cachedEl)
             this.highlight(cachedEl)
             return true
         }
@@ -238,7 +276,7 @@ export class GeminiAdapter implements ISiteAdapter {
 
         if (parts.length === 3) {
             // Just the turn
-            turnElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            this.scrollWithOffset(turnElement)
             this.highlight(turnElement)
             return true
         }
@@ -270,11 +308,11 @@ export class GeminiAdapter implements ISiteAdapter {
         }
 
         if (target) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            this.scrollWithOffset(target)
             this.highlight(target)
             return true
         } else {
-            turnElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            this.scrollWithOffset(turnElement)
             return true
         }
     }

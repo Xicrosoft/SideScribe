@@ -206,19 +206,58 @@ export class ChatGPTAdapter implements ISiteAdapter {
         }, 1000)
     }
 
+    private getScrollParent(node: HTMLElement): HTMLElement {
+        let parent = node.parentElement
+        while (parent) {
+            const style = window.getComputedStyle(parent)
+            if (['scroll', 'auto'].includes(style.overflowY)) {
+                return parent
+            }
+            parent = parent.parentElement
+        }
+        return document.documentElement
+    }
+
+    private scrollWithOffset(el: HTMLElement) {
+        const offset = window.innerHeight * 0.15
+        const container = this.getScrollParent(el)
+
+        // If container is document root/body, use window scroll
+        if (container === document.documentElement || container === document.body) {
+            const elementPosition = el.getBoundingClientRect().top + window.pageYOffset
+            const offsetPosition = elementPosition - offset
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: "smooth"
+            })
+        } else {
+            // Container scroll
+            const elRect = el.getBoundingClientRect()
+            const containerRect = container.getBoundingClientRect()
+            const currentScroll = container.scrollTop
+            const diff = elRect.top - containerRect.top
+            const target = currentScroll + diff - offset
+
+            container.scrollTo({
+                top: target,
+                behavior: "smooth"
+            })
+        }
+    }
+
     scrollTo(id: string): boolean {
         // Method 1: Try using cached element reference (Most Robust)
         const cachedEl = this.nodeElementMap.get(id)
         if (cachedEl && document.contains(cachedEl)) {
-            // Check if hidden (collapsed parent) - naive check
-            // If offsetParent is null, it might be hidden.
+            // Check if hidden (collapsed parent)
             if (cachedEl.offsetParent === null) {
-                // Try to find parent details/button to click? 
-                // Too risky to automate clicking in ChatGPT. 
-                // Just try scrolling parent?
+                // If hidden, standard scrollIntoView might be needed to expand/reveal, 
+                // but for now let's try our offset scroll which assumes visibility or standard behavior.
+                // Actually, if it's display:none, getBoundingClientRect is 0.
                 cachedEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
             } else {
-                cachedEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                this.scrollWithOffset(cachedEl)
             }
             this.highlight(cachedEl)
             return true
@@ -236,7 +275,7 @@ export class ChatGPTAdapter implements ISiteAdapter {
 
         if (parts.length === 3) {
             // Just the turn: ext-turn-5
-            turnElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            this.scrollWithOffset(turnElement)
             this.highlight(turnElement)
             return true
         }
@@ -253,16 +292,8 @@ export class ChatGPTAdapter implements ISiteAdapter {
             if (headings.length > subIndex) {
                 target = headings[subIndex] as HTMLElement
             } else {
-                // Fallback to bolds if headings exhausted (though TOCParser usually exclusive)
-                // If ID says 'heading', TOCParser usually found a heading.
-                // But TOCParser Strategy 2 uses 'heading' type for bolds too!
-                // We need to check if we are in Strategy 2 territory.
-                // TOCParser uses headings OR bolds.
                 if (headings.length === 0) {
                     const bolds = Array.from(turnElement.querySelectorAll('strong, b'))
-                    // Filter same as TOCParser? 
-                    // Ideally we replicate strict filtering or just grab all. 
-                    // Let's grab specific one.
                     const significantBolds = bolds.filter(b => {
                         const text = b.textContent?.trim() || ""
                         const parentBlock = b.parentElement
@@ -275,20 +306,18 @@ export class ChatGPTAdapter implements ISiteAdapter {
         } else if (type === 'para') {
             const paras = Array.from(turnElement.querySelectorAll('p'))
             if (paras.length > subIndex) {
-                // TOCParser adds filter > 20 chars
-                // We must filter too to match indices
                 const validParas = paras.filter(p => (p.textContent?.trim().length || 0) > 20)
                 if (validParas.length > subIndex) target = validParas[subIndex] as HTMLElement
             }
         }
 
         if (target) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            this.scrollWithOffset(target)
             this.highlight(target)
             return true
         } else {
             // Fallback to turn
-            turnElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            this.scrollWithOffset(turnElement)
             return true
         }
     }
