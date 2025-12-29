@@ -293,6 +293,13 @@ export class GeminiAdapter implements ISiteAdapter {
         const originalOutlineOffset = el.style.outlineOffset
         const originalTransition = el.style.transition
         const originalBoxShadow = el.style.boxShadow
+        const originalBorderRadius = el.style.borderRadius
+
+        // Check if element already has significant border-radius (e.g., user bubbles)
+        // If so, don't override it; otherwise apply our own for nicer highlights
+        const computedRadius = window.getComputedStyle(el).borderRadius
+        const hasExistingRadius = computedRadius && parseFloat(computedRadius) > 4
+        const shouldApplyRadius = !hasExistingRadius
 
         const timers: number[] = []
 
@@ -301,15 +308,23 @@ export class GeminiAdapter implements ISiteAdapter {
             el.style.outlineOffset = originalOutlineOffset
             el.style.boxShadow = originalBoxShadow
             el.style.transition = originalTransition
+            if (shouldApplyRadius) {
+                el.style.borderRadius = originalBorderRadius
+            }
             this.activeHighlightCleanup.delete(el)
         }
 
         // Store cleanup function and timer references
         this.activeHighlightCleanup.set(el, { cleanup, timers })
 
-        // Apply highlight styles - don't modify borderRadius to preserve bubble shape
+        // Apply highlight styles
         el.style.transition = 'outline 0.2s ease, box-shadow 0.2s ease, outline-offset 0.2s ease'
         el.style.outlineOffset = '4px' // Add spacing between text and outline
+
+        // Only apply border-radius if element doesn't already have one (preserve bubble shapes)
+        if (shouldApplyRadius) {
+            el.style.borderRadius = '6px'
+        }
 
         // Blink animation - multiple pulses
         const pulseOn = () => {
