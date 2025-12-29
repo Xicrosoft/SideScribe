@@ -238,8 +238,13 @@
     chrome.tabs.create({ url: chrome.runtime.getURL("tabs/settings.html") })
   }
 
+  let isRefreshing = false
   function manualRefresh() {
+    isRefreshing = true
     fetchTOC()
+    setTimeout(() => {
+      isRefreshing = false
+    }, 1000)
   }
 </script>
 
@@ -264,7 +269,8 @@
           style="color: {tokens.textSecondary};"
           title="Refresh">
           <svg
-            class="w-4 h-4"
+            class="w-4 h-4 {isRefreshing ? 'animate-spin' : ''}"
+            class:animate-spin={isRefreshing}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor">
@@ -436,5 +442,16 @@
   }
   .search-input:focus {
     border-color: var(--focus-border-color);
+  }
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
 </style>
