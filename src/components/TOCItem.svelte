@@ -64,7 +64,7 @@
     class="flex items-center relative cursor-pointer transition-all duration-150"
     style="
       min-height: 30px;
-      padding-left: {(isTurn ? 0 : node.level * 8) + 4}px;
+      padding-left: 4px;
       padding-right: 8px;
       border-radius: 6px;
       background: {isActive ? bgActive : isHovered ? bgHover : 'transparent'};
@@ -139,9 +139,7 @@
 
   <!-- Recursive Children -->
   {#if hasChildren && isExpanded}
-    <div
-      transition:slide|local={{ duration: 200 }}
-      style="margin-left: 4px; padding-left: 8px; border-left: 1px solid {borderColor};">
+    <div transition:slide|local={{ duration: 200 }} style="margin-left: 12px;">
       {#each node.children as child (child.id)}
         <svelte:self
           node={child}
