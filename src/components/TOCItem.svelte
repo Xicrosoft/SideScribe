@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte"
+  import { slide } from "svelte/transition"
 
   import type { TOCNode } from "../lib/types"
 
@@ -139,6 +140,7 @@
   <!-- Recursive Children -->
   {#if hasChildren && isExpanded}
     <div
+      transition:slide|local={{ duration: 200 }}
       style="margin-left: 4px; padding-left: 8px; border-left: 1px solid {borderColor};">
       {#each node.children as child (child.id)}
         <svelte:self
