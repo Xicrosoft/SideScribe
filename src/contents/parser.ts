@@ -1,0 +1,238 @@
+import type { PlasmoCSConfig } from "plasmo"
+import { AdapterRegistry } from "../adapters/registry"
+import type { MessagePayload, ScrollToPayload } from "../lib/types"
+
+export const config: PlasmoCSConfig = {
+    matches: ["https://gemini.google.com/*", "https://chatgpt.com/*"],
+    run_at: "document_idle"
+}
+
+console.log("SideScribe Content Script Loaded")
+
+const registry = new AdapterRegistry()
+
+// Initialize based on current URL
+// Safe sendMessage helper
+const safeSendMessage = (message: MessagePayload) => {
+    if (chrome.runtime?.id) {
+        chrome.runtime.sendMessage(message).catch(err => {
+            // Ignore context invalidated errors during reload or disconnected port
+            if (err.message.includes("Extension context invalidated") || err.message.includes("closed")) return
+            console.warn("SideScribe Message Error:", err)
+        })
+    }
+}
+
+// Timeout mechanism
+let detectionTimeout: number | null = null
+
+registry.init(window.location.href,
+    (result) => {
+        // Clear timeout on success
+        if (detectionTimeout) {
+            clearTimeout(detectionTimeout)
+            detectionTimeout = null
+        }
+
+        // On TOC Update, send to background/sidepanel
+        safeSendMessage({
+            type: "TOC_UPDATE",
+            payload: result.toc
+        })
+
+        // Also send title update
+        sendTitleUpdate()
+    },
+    (activeId) => {
+        safeSendMessage({
+            type: "ACTIVE_CHANGE",
+            payload: { activeNodeId: activeId }
+        })
+    }
+)
+
+function sendTitleUpdate() {
+    let title = ""
+
+    // Try Gemini's conversation-title element first
+    const geminiTitle = document.querySelector('.conversation-title.gds-title-m')
+    if (geminiTitle) {
+        title = geminiTitle.textContent?.trim() || ""
+    }
+
+    // For ChatGPT, try to get the conversation title from the page
+    if (!title) {
+        const chatgptTitle = document.querySelector('h1')
+        if (chatgptTitle) {
+            title = chatgptTitle.textContent?.trim() || ""
+        }
+    }
+
+    if (title) {
+        safeSendMessage({
+            type: "TITLE_UPDATE",
+            payload: { title }
+        })
+    }
+}
+
+// Set a timeout to warn if no content found
+detectionTimeout = setTimeout(() => {
+    const adapter = registry.getActiveAdapter()
+    if (!adapter) {
+        // No adapter match at all? 
+        // We probably don't want to show an error unless we match the host but fail logic.
+        // Actually, manifest 'matches' handles host matching.
+        // So if we are running, we SHOULD match something.
+        console.warn("SideScribe: No content detected after 5s.")
+        // Send empty update with error flag? For now just log.
+        // Or better: send a "TOC_EMPTY" type?
+        // Let's rely on UI showing "Empty" state for now.
+    }
+}, 5000)
+
+// Listen for messages (ScrollTo, CopyLink, RequestTOC) from SidePanel/Overlay/Background
+chrome.runtime.onMessage.addListener((message: MessagePayload) => {
+    if (message.type === "SCROLL_TO") {
+        const payload = message.payload as ScrollToPayload
+        const adapter = registry.getActiveAdapter()
+        if (adapter) {
+            adapter.scrollTo(payload.targetId)
+        }
+    } else if (message.type === "REQUEST_TOC") {
+        // Force a fresh parse and send
+        const adapter = registry.getActiveAdapter()
+        if (adapter) {
+            const result = adapter.parse()
+            safeSendMessage({
+                type: "TOC_UPDATE",
+                payload: result.toc
+            })
+            // Also send title update
+            sendTitleUpdate()
+        }
+    } else if (message.type === "REQUEST_TITLE") {
+        sendTitleUpdate()
+    } else if (message.type === "COPY_DEEP_LINK") {
+        // We need to identify the target. 
+        // 1. If we tracked the last right-clicked element, use that.
+        // 2. Fallback to active element from ScrollSpy.
+
+        const adapter = registry.getActiveAdapter()
+        if (!adapter || !adapter.getNodeId) return
+
+        let targetId: string | null = null
+
+        // Strategy: Use last right clicked element
+        if (lastRightClickElement) {
+            // Traverse up to find a node known to the adapter
+            let el: HTMLElement | null = lastRightClickElement
+            while (el && !targetId && el !== document.body) {
+                targetId = adapter.getNodeId(el)
+                el = el.parentElement
+            }
+        }
+
+        if (targetId) {
+            const url = new URL(window.location.href)
+            url.hash = `#${targetId}`
+            navigator.clipboard.writeText(url.toString()).then(() => {
+                alert("Link copied to clipboard!")
+                // In a real app, use a nicer toast
+            })
+        }
+    }
+})
+
+// Track right-click target
+let lastRightClickElement: HTMLElement | null = null
+document.addEventListener("contextmenu", (e) => {
+    lastRightClickElement = e.target as HTMLElement
+}, true)
+
+// Handle navigation (SPA) & Hash Change
+let lastUrl = window.location.href
+const handleUrlChange = () => {
+    const url = window.location.href
+    if (url !== lastUrl) {
+        // If only hash changed, try to scroll
+        const oldUrlObj = new URL(lastUrl)
+        const newUrlObj = new URL(url)
+
+        if (oldUrlObj.pathname === newUrlObj.pathname && newUrlObj.hash) {
+            // Hash change only
+            const adapter = registry.getActiveAdapter()
+            if (adapter && adapter.scrollToHash) {
+                adapter.scrollToHash(newUrlObj.hash)
+            } else if (adapter) {
+                // Fallback: try to scroll to ID if it matches our format
+                const id = newUrlObj.hash.substring(1)
+                if (id.startsWith('ext-')) {
+                    // Retry logic
+                    let attempts = 0
+                    const maxAttempts = 10
+                    const interval = setInterval(() => {
+                        attempts++
+                        const success = adapter.scrollTo(id)
+                        if (success || attempts >= maxAttempts) {
+                            clearInterval(interval)
+                            if (!success) console.warn(`Could not scroll to ${id} after ${maxAttempts} attempts`)
+                        }
+                    }, 200)
+                }
+            }
+        } else {
+            // Full navigation
+            registry.init(url,
+                (result) => {
+                    safeSendMessage({
+                        type: "TOC_UPDATE",
+                        payload: result.toc
+                    })
+                },
+                (activeId) => {
+                    safeSendMessage({
+                        type: "ACTIVE_CHANGE",
+                        payload: { activeNodeId: activeId }
+                    })
+                }
+            )
+        }
+        lastUrl = url
+    }
+}
+
+// Observe Title/URL changes
+new MutationObserver(handleUrlChange).observe(document, { subtree: true, childList: true })
+// Also listen to hashchange event
+window.addEventListener('hashchange', handleUrlChange)
+// Polling fallback for SPA navs that don't trigger events/mutations predictably
+setInterval(handleUrlChange, 1000)
+
+// Theme Detection
+const detectTheme = () => {
+    // Check for "dark" class on document.documentElement or body
+    const isDark = document.documentElement.classList.contains('dark') ||
+        document.body.classList.contains('dark') ||
+        window.matchMedia('(prefers-color-scheme: dark)').matches
+
+    // Some sites like Gemini use specific data attributes
+    const geminiDark = document.body.getAttribute('data-theme') === 'dark'
+
+    // ChatGPT uses .dark class on html
+    const chatgptDark = document.documentElement.classList.contains('dark')
+
+    const theme = (isDark || geminiDark || chatgptDark) ? 'dark' : 'light'
+
+    safeSendMessage({
+        type: "THEME_CHANGE",
+        payload: { theme }
+    })
+}
+
+// Observe class changes for theme
+new MutationObserver(detectTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+new MutationObserver(detectTheme).observe(document.body, { attributes: true, attributeFilter: ['class', 'data-theme'] })
+
+// Initial check
+detectTheme()
