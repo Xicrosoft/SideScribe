@@ -74,17 +74,26 @@
     }, [])
   }
 
-  function fetchTOC() {
+  function fetchTOC(clearExisting = false) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.id) {
+        const isSwitchingTab =
+          currentTabId !== undefined && currentTabId !== tabs[0].id
+        // Clear state immediately if switching tabs to prevent flicker
+        if (clearExisting || isSwitchingTab) {
+          tocStore.set([])
+          chatTitle = ""
+        }
         currentTabId = tabs[0].id
         host = detectHost(tabs[0].url || "")
-        // Default fallback title from tab
-        chatTitle =
-          tabs[0].title
-            ?.replace(" | ChatGPT", "")
-            .replace(" - Gemini", "")
-            .trim() || ""
+        // Default fallback title from tab (only if not already set)
+        if (!chatTitle) {
+          chatTitle =
+            tabs[0].title
+              ?.replace(" | ChatGPT", "")
+              .replace(" - Gemini", "")
+              .trim() || ""
+        }
         // Request fresh TOC and title
         chrome.tabs
           .sendMessage(tabs[0].id, { type: "REQUEST_TOC" })
@@ -95,6 +104,25 @@
           .catch(() => {})
       }
     })
+  }
+
+  // Named handler for proper cleanup
+  const handleTabActivated = () => fetchTOC(true)
+  const handleTabUpdated = (
+    tabId: number,
+    changeInfo: chrome.tabs.TabChangeInfo
+  ) => {
+    if (tabId === currentTabId && changeInfo.url) {
+      // Reset title immediately on URL change (SPA navigation)
+      chatTitle = ""
+      // Clear current TOC
+      tocStore.set([])
+      // Fetch TOC
+      fetchTOC()
+      // Also fetch after a delay to catch SPA DOM updates
+      setTimeout(fetchTOC, 500)
+      setTimeout(fetchTOC, 1500)
+    }
   }
 
   onMount(() => {
@@ -114,26 +142,15 @@
     fetchTOC()
 
     // Listen for tab activation changes
-    chrome.tabs.onActivated.addListener(fetchTOC)
+    chrome.tabs.onActivated.addListener(handleTabActivated)
 
     // Listen for URL changes in current tab
-    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-      if (tabId === currentTabId && changeInfo.url) {
-        // Reset title immediately on URL change (SPA navigation)
-        chatTitle = ""
-        // Clear current TOC
-        tocStore.set([])
-        // Fetch TOC
-        fetchTOC()
-        // Also fetch after a delay to catch SPA DOM updates
-        setTimeout(fetchTOC, 500)
-        setTimeout(fetchTOC, 1500)
-      }
-    })
+    chrome.tabs.onUpdated.addListener(handleTabUpdated)
   })
 
   onDestroy(() => {
-    chrome.tabs.onActivated.removeListener(fetchTOC)
+    chrome.tabs.onActivated.removeListener(handleTabActivated)
+    chrome.tabs.onUpdated.removeListener(handleTabUpdated)
   })
 
   function handleJump(event: CustomEvent) {
