@@ -5,12 +5,7 @@
 
   import TOCItem from "./components/TOCItem.svelte"
   import { t } from "./lib/i18n"
-  import {
-    activeNodeId,
-    expandedTurnStore,
-    themeStore,
-    tocStore
-  } from "./lib/store"
+  import { activeNodeId, expandedTurnStore, tocStore } from "./lib/store"
   import {
     detectHost,
     THEME_TOKENS,
@@ -22,7 +17,11 @@
   let toc: TOCNode[] = []
   let activeId: string | null = null
   let searchQuery = ""
-  let effectiveTheme: ThemeMode = "light"
+  let effectiveTheme: ThemeMode = window.matchMedia(
+    "(prefers-color-scheme: dark)"
+  ).matches
+    ? "dark"
+    : "light"
   let chatTitle = ""
   let needsRefresh = false // True when content script is not responding
 
@@ -53,9 +52,7 @@
     }
   })
   activeNodeId.subscribe((val) => (activeId = val))
-  themeStore.subscribe((val) => {
-    effectiveTheme = val === "auto" ? "light" : val
-  })
+
   expandedTurnStore.subscribe((val) => (expandedTurnIds = val))
 
   // Filtered View

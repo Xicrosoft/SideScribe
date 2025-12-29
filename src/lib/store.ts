@@ -83,7 +83,7 @@ function createPersistedValue<T>(key: string, defaultVal: T) {
 
 export const expandedTurnStore = createPersistedSet(STORAGE_KEYS.EXPANDED_TURNS)
 export const overlayOpenStore = createPersistedBoolean(STORAGE_KEYS.OVERLAY_OPEN, true)
-export const themeStore = createPersistedValue<'auto' | 'light' | 'dark'>(STORAGE_KEYS.THEME_PREF, 'auto')
+
 export const settingsStore = createPersistedValue('settings', {
     autoExpand: true
 })

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { t } from "../lib/i18n"
   import { storage, STORAGE_KEYS } from "../lib/storage"
-  import { languageStore, settingsStore, themeStore } from "../lib/store"
+  import { languageStore, settingsStore } from "../lib/store"
 
   let cacheCleared = false
 
@@ -18,19 +18,6 @@
   <h3 class="font-semibold text-gray-900 dark:text-gray-100">
     {$t("settings.title")}
   </h3>
-
-  <!-- Theme -->
-  <div class="flex items-center justify-between">
-    <span class="text-sm text-gray-700 dark:text-gray-300"
-      >{$t("settings.theme")}</span>
-    <select
-      bind:value={$themeStore}
-      class="text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-2 py-1 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-500">
-      <option value="auto">{$t("theme.auto")}</option>
-      <option value="light">{$t("theme.light")}</option>
-      <option value="dark">{$t("theme.dark")}</option>
-    </select>
-  </div>
 
   <!-- Language -->
   <div class="flex items-center justify-between">
