@@ -24,6 +24,7 @@
   let searchQuery = ""
   let effectiveTheme: ThemeMode = "light"
   let chatTitle = ""
+  let needsRefresh = false // True when content script is not responding
 
   // UI State
   let expandedTurnIds = new Set<string>()
@@ -33,6 +34,12 @@
   // Host detection (from active tab)
   let host: HostType = "generic"
   let currentTabId: number | undefined
+  let currentTabUrl: string = ""
+
+  // Check if current site is supported
+  $: isSupportedSite =
+    currentTabUrl.includes("gemini.google.com") ||
+    currentTabUrl.includes("chatgpt.com")
 
   $: tokens = THEME_TOKENS[host][effectiveTheme]
 
@@ -77,15 +84,18 @@
   function fetchTOC(clearExisting = false) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.id) {
+        const tabId = tabs[0].id
         const isSwitchingTab =
-          currentTabId !== undefined && currentTabId !== tabs[0].id
+          currentTabId !== undefined && currentTabId !== tabId
         // Clear state immediately if switching tabs to prevent flicker
         if (clearExisting || isSwitchingTab) {
           tocStore.set([])
           chatTitle = ""
+          needsRefresh = false
         }
-        currentTabId = tabs[0].id
-        host = detectHost(tabs[0].url || "")
+        currentTabId = tabId
+        currentTabUrl = tabs[0].url || ""
+        host = detectHost(currentTabUrl)
         // Default fallback title from tab (only if not already set)
         if (!chatTitle) {
           chatTitle =
@@ -94,16 +104,44 @@
               .replace(" - Gemini", "")
               .trim() || ""
         }
-        // Request fresh TOC and title
+
+        // Only try to communicate with content script on supported sites
+        if (
+          !currentTabUrl.includes("gemini.google.com") &&
+          !currentTabUrl.includes("chatgpt.com")
+        ) {
+          // Not a supported site, don't try to communicate
+          needsRefresh = false
+          return
+        }
+        // Request fresh TOC and title, detect if content script is alive
         chrome.tabs
-          .sendMessage(tabs[0].id, { type: "REQUEST_TOC" })
-          .catch(() => {})
+          .sendMessage(tabId, { type: "REQUEST_TOC" })
+          .then(() => {
+            // Content script responded, connection is alive
+            needsRefresh = false
+          })
+          .catch(() => {
+            // Content script not responding - likely extension was reloaded
+            needsRefresh = true
+          })
         // Request page title (Gemini uses specific element)
         chrome.tabs
-          .sendMessage(tabs[0].id, { type: "REQUEST_TITLE" })
+          .sendMessage(tabId, { type: "REQUEST_TITLE" })
           .catch(() => {})
       }
     })
+  }
+
+  function refreshPage() {
+    if (currentTabId) {
+      chrome.tabs.reload(currentTabId).then(() => {
+        needsRefresh = false
+        // Wait for page to reload, then fetch TOC
+        setTimeout(fetchTOC, 2000)
+        setTimeout(fetchTOC, 4000)
+      })
+    }
   }
 
   // Named handler for proper cleanup
@@ -318,7 +356,34 @@
 
   <!-- TOC List -->
   <main class="flex-1 overflow-y-auto p-2">
-    {#if filteredTOC.length === 0}
+    {#if !isSupportedSite}
+      <div
+        class="flex flex-col items-center justify-center h-64 text-sm"
+        style="color: {tokens.textSecondary};">
+        <span class="mb-2 text-2xl">👋</span>
+        <p class="mb-2 font-medium">Unsupported Page</p>
+        <p class="text-xs text-center px-4" style="opacity: 0.6;">
+          SideScribe works on ChatGPT and Gemini. Navigate to a supported site
+          to use this extension.
+        </p>
+      </div>
+    {:else if needsRefresh}
+      <div
+        class="flex flex-col items-center justify-center h-64 text-sm"
+        style="color: {tokens.textSecondary};">
+        <span class="mb-2 text-2xl">⚠️</span>
+        <p class="mb-2">Connection Error</p>
+        <p class="text-xs mb-4" style="opacity: 0.6;">
+          Please refresh the page to restore connection
+        </p>
+        <button
+          on:click={refreshPage}
+          class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          style="background: {tokens.accent}; color: {tokens.bg};">
+          Refresh Page
+        </button>
+      </div>
+    {:else if filteredTOC.length === 0}
       <div
         class="flex flex-col items-center justify-center h-64 text-sm"
         style="color: {tokens.textSecondary};">
