@@ -3,7 +3,13 @@
 
   import { onMount } from "svelte"
 
-  import { languageStore, t, type Language } from "../lib/i18n"
+  import {
+    effectiveLanguage,
+    LANGUAGE_META,
+    languageStore,
+    t,
+    type Language
+  } from "../lib/i18n"
   import {
     clearAllCachedConversations,
     getAllCachedConversations,
@@ -12,13 +18,19 @@
   } from "../lib/storage"
   import { THEME_TOKENS, type ThemeMode } from "../lib/theme-tokens"
 
-  let effectiveTheme: ThemeMode = "light"
-  let currentLang: Language = "en"
+  // Detect theme BEFORE any render to prevent flash
+  let effectiveTheme: ThemeMode =
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light"
+
+  let currentLang: Language = "auto"
   let tocCacheEnabled = true
   let cacheCleared = false
   let isLoaded = false
-  let showCacheManager = false
   let cachedCount = 0
+  let langDropdownOpen = false
 
   $: tokens = THEME_TOKENS.generic[effectiveTheme]
   $: isDark = effectiveTheme === "dark"
@@ -26,11 +38,6 @@
   languageStore.subscribe((val) => (currentLang = val))
 
   onMount(async () => {
-    // Detect theme FIRST to prevent flash
-    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      effectiveTheme = "dark"
-    }
-
     // Load TOC cache setting
     const savedTocCache = await storage.get(STORAGE_KEYS.TOC_CACHE_ENABLED)
     if (typeof savedTocCache === "boolean") {
@@ -43,6 +50,16 @@
 
     // Mark as loaded
     isLoaded = true
+
+    // Close dropdown on outside click
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest(".lang-dropdown")) {
+        langDropdownOpen = false
+      }
+    }
+    document.addEventListener("click", handleClickOutside)
+    return () => document.removeEventListener("click", handleClickOutside)
   })
 
   async function clearCache() {
@@ -60,21 +77,51 @@
 
   function setLanguage(lang: Language) {
     languageStore.set(lang)
+    langDropdownOpen = false
   }
 
   function openCacheManager() {
-    // Open cache manager in new tab
     chrome.tabs.create({ url: chrome.runtime.getURL("tabs/history.html") })
   }
+
+  // Languages for dropdown - Auto and English at top, others below divider
+  const topLanguages: Language[] = ["auto", "en"]
+  const otherLanguages: Language[] = [
+    "zh-Hans",
+    "zh-Hant",
+    "fr",
+    "ru",
+    "ja",
+    "ko"
+  ]
 </script>
 
 <svelte:head>
+  <script>
+    // Inline script to prevent theme flash - runs before render
+    ;(function () {
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        document.documentElement.style.setProperty("--bg-color", "#212121")
+        document.documentElement.style.background = "#212121"
+      } else {
+        document.documentElement.style.setProperty("--bg-color", "#ffffff")
+        document.documentElement.style.background = "#ffffff"
+      }
+    })()
+  </script>
   <style>
     html,
     body {
-      background: var(--bg-color);
+      background: var(--bg-color, #ffffff);
       margin: 0;
       padding: 0;
+    }
+    @media (prefers-color-scheme: dark) {
+      html,
+      body {
+        background: #212121;
+        --bg-color: #212121;
+      }
     }
   </style>
 </svelte:head>
@@ -85,14 +132,12 @@
   class:opacity-0={!isLoaded}
   class:opacity-100={isLoaded}>
   <div class="max-w-xl mx-auto px-6 py-12">
-    <!-- Header with animation -->
+    <!-- Header -->
     <header class="mb-10 animate-fadeIn">
       <div class="flex items-center gap-3 mb-3">
         <div
-          class="w-10 h-10 rounded-xl flex items-center justify-center transition-transform hover:scale-105"
-          style="background: linear-gradient(135deg, {tokens.accent}, {isDark
-            ? '#818cf8'
-            : '#4f46e5'});">
+          class="w-10 h-10 rounded-xl flex items-center justify-center"
+          style="background: linear-gradient(135deg, #0285ff, #0066cc);">
           <svg
             class="w-5 h-5 text-white"
             fill="none"
@@ -114,19 +159,19 @@
       </div>
     </header>
 
-    <!-- Settings Cards with stagger animation -->
+    <!-- Settings Cards -->
     <div class="space-y-4">
-      <!-- Language Card -->
+      <!-- Language Card with Dropdown -->
       <div
-        class="settings-card p-4 rounded-2xl transition-all duration-200 hover:shadow-lg animate-slideUp"
+        class="settings-card p-4 rounded-2xl transition-all duration-200 animate-slideUp"
         style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border}; animation-delay: 0.1s;">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div
               class="icon-box"
               style="background: {isDark
-                ? 'rgba(99,102,241,0.15)'
-                : 'rgba(99,102,241,0.1)'}; color: {tokens.accent};">
+                ? 'rgba(2,133,255,0.15)'
+                : 'rgba(2,133,255,0.1)'}; color: #0285ff;">
               <svg
                 class="w-4 h-4"
                 fill="none"
@@ -142,44 +187,99 @@
             <div>
               <div class="font-medium text-sm">{$t("settings.language")}</div>
               <div class="text-xs" style="color: {tokens.textSecondary};">
-                Interface language
+                {$t("settings.language.desc")}
               </div>
             </div>
           </div>
-          <div
-            class="flex gap-1 p-1 rounded-lg"
-            style="background: {tokens.bg};">
+
+          <!-- ChatGPT-style Dropdown -->
+          <div class="lang-dropdown relative">
             <button
-              on:click={() => setLanguage("en")}
-              class="px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200"
-              style="background: {currentLang === 'en'
-                ? tokens.accent
-                : 'transparent'}; color: {currentLang === 'en'
-                ? isDark
-                  ? '#000'
-                  : '#fff'
-                : tokens.textSecondary};">
-              EN
+              on:click|stopPropagation={() =>
+                (langDropdownOpen = !langDropdownOpen)}
+              class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors"
+              style="background: {tokens.bg}; border: 1px solid {tokens.border};">
+              <span>{LANGUAGE_META[currentLang].native}</span>
+              <svg
+                class="w-3 h-3 transition-transform"
+                class:rotate-180={langDropdownOpen}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7" />
+              </svg>
             </button>
-            <button
-              on:click={() => setLanguage("zh")}
-              class="px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200"
-              style="background: {currentLang === 'zh'
-                ? tokens.accent
-                : 'transparent'}; color: {currentLang === 'zh'
-                ? isDark
-                  ? '#000'
-                  : '#fff'
-                : tokens.textSecondary};">
-              中文
-            </button>
+
+            {#if langDropdownOpen}
+              <div
+                class="dropdown-menu absolute right-0 top-full mt-1 py-1 rounded-xl shadow-lg z-50 min-w-[180px]"
+                style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border};">
+                <!-- Top languages -->
+                {#each topLanguages as lang}
+                  <button
+                    on:click={() => setLanguage(lang)}
+                    class="dropdown-item w-full text-left px-4 py-2 text-sm flex items-center justify-between transition-colors"
+                    style="color: {tokens.text};">
+                    <span>{LANGUAGE_META[lang].native}</span>
+                    {#if currentLang === lang}
+                      <svg
+                        class="w-4 h-4"
+                        style="color: {tokens.text};"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M5 13l4 4L19 7" />
+                      </svg>
+                    {/if}
+                  </button>
+                {/each}
+
+                <!-- Divider -->
+                <div
+                  class="my-1 mx-3 border-t"
+                  style="border-color: {tokens.border};">
+                </div>
+
+                <!-- Other languages -->
+                {#each otherLanguages as lang}
+                  <button
+                    on:click={() => setLanguage(lang)}
+                    class="dropdown-item w-full text-left px-4 py-2 text-sm flex items-center justify-between transition-colors"
+                    style="color: {tokens.text};">
+                    <span>{LANGUAGE_META[lang].native}</span>
+                    {#if currentLang === lang}
+                      <svg
+                        class="w-4 h-4"
+                        style="color: {tokens.text};"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M5 13l4 4L19 7" />
+                      </svg>
+                    {/if}
+                  </button>
+                {/each}
+              </div>
+            {/if}
           </div>
         </div>
       </div>
 
       <!-- TOC Cache Toggle Card -->
       <div
-        class="settings-card p-4 rounded-2xl transition-all duration-200 hover:shadow-lg animate-slideUp"
+        class="settings-card p-4 rounded-2xl transition-all duration-200 animate-slideUp"
         style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border}; animation-delay: 0.15s;">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
@@ -203,17 +303,14 @@
             <div>
               <div class="font-medium text-sm">{$t("settings.cache")}</div>
               <div class="text-xs" style="color: {tokens.textSecondary};">
-                Cache outlines for faster loading
+                {$t("settings.cache.desc")}
               </div>
             </div>
           </div>
           <button
             on:click={toggleTocCache}
             class="toggle-switch"
-            class:active={tocCacheEnabled}
-            style="background: {tocCacheEnabled
-              ? tokens.accent
-              : tokens.border};">
+            style="background: {tocCacheEnabled ? '#0285ff' : '#676767'};">
             <div
               class="toggle-knob"
               style="left: {tocCacheEnabled ? '22px' : '2px'};">
@@ -224,7 +321,7 @@
 
       <!-- Cached Conversations Card -->
       <div
-        class="settings-card p-4 rounded-2xl transition-all duration-200 hover:shadow-lg animate-slideUp cursor-pointer"
+        class="settings-card p-4 rounded-2xl transition-all duration-200 cursor-pointer animate-slideUp"
         style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border}; animation-delay: 0.2s;"
         on:click={openCacheManager}
         on:keydown={(e) => e.key === "Enter" && openCacheManager()}
@@ -250,9 +347,11 @@
               </svg>
             </div>
             <div>
-              <div class="font-medium text-sm">Cached Conversations</div>
+              <div class="font-medium text-sm">
+                {$t("settings.cache.conversations")}
+              </div>
               <div class="text-xs" style="color: {tokens.textSecondary};">
-                {cachedCount} conversation{cachedCount !== 1 ? "s" : ""} cached
+                {$t("settings.cache.count", { count: cachedCount })}
               </div>
             </div>
           </div>
@@ -271,9 +370,9 @@
         </div>
       </div>
 
-      <!-- Clear Cache Card -->
+      <!-- Clear Cache Card (at bottom to prevent accidental clicks) -->
       <div
-        class="settings-card p-4 rounded-2xl transition-all duration-200 hover:shadow-lg animate-slideUp"
+        class="settings-card p-4 rounded-2xl transition-all duration-200 animate-slideUp"
         style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border}; animation-delay: 0.25s;">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
@@ -313,7 +412,9 @@
                 : 'rgba(239,68,68,0.1)'}; color: {cacheCleared
               ? 'white'
               : '#ef4444'};">
-            {cacheCleared ? "✓ Cleared" : "Clear All"}
+            {cacheCleared
+              ? $t("settings.cache.cleared")
+              : $t("settings.cache.clear")}
           </button>
         </div>
       </div>
@@ -324,7 +425,7 @@
       class="mt-12 text-center animate-fadeIn"
       style="animation-delay: 0.4s;">
       <p class="text-xs" style="color: {tokens.textSecondary};">
-        Made with ❤️ for AI conversations
+        {$t("footer.made")}
       </p>
     </footer>
   </div>
@@ -362,7 +463,26 @@
     border-radius: 10px;
     background: white;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dropdown-menu {
+    animation: dropdownIn 0.15s ease;
+  }
+
+  .dropdown-item:hover {
+    background: var(--hover-bg, rgba(128, 128, 128, 0.1));
+  }
+
+  @keyframes dropdownIn {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   @keyframes fadeIn {

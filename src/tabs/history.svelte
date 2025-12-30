@@ -3,6 +3,7 @@
 
   import { onMount } from "svelte"
 
+  import { effectiveLanguage, t } from "../lib/i18n"
   import {
     clearAllCachedConversations,
     deleteCachedConversation,
@@ -15,7 +16,13 @@
     TOCNode
   } from "../lib/types"
 
-  let effectiveTheme: ThemeMode = "light"
+  // Detect theme BEFORE render to prevent flash
+  let effectiveTheme: ThemeMode =
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light"
+
   let isLoaded = false
   let conversations: CachedConversation[] = []
   let searchQuery = ""
@@ -24,15 +31,17 @@
   let selectedConversation: CachedConversation | null = null
   let confirmClearAll = false
 
+  // Dropdown states
+  let sortDropdownOpen = false
+  let filterDropdownOpen = false
+
   $: tokens = THEME_TOKENS.generic[effectiveTheme]
   $: isDark = effectiveTheme === "dark"
 
   // Filter and sort conversations
   $: filteredConversations = conversations
     .filter((conv) => {
-      // Source filter
       if (filterSource !== "all" && conv.source !== filterSource) return false
-      // Search filter (fuzzy)
       if (searchQuery) {
         const query = searchQuery.toLowerCase()
         return (
@@ -55,14 +64,31 @@
       }
     })
 
-  onMount(async () => {
-    // Detect theme
-    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      effectiveTheme = "dark"
-    }
+  // Sort/filter options
+  const sortOptions = [
+    { value: "date", key: "history.sort.date" },
+    { value: "title", key: "history.sort.title" },
+    { value: "length", key: "history.sort.length" }
+  ] as const
 
+  const filterOptions = [
+    { value: "all", key: "history.filter.all" },
+    { value: "chatgpt", key: "history.filter.chatgpt" },
+    { value: "gemini", key: "history.filter.gemini" }
+  ] as const
+
+  onMount(async () => {
     await loadConversations()
     isLoaded = true
+
+    // Close dropdowns on outside click
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest(".sort-dropdown")) sortDropdownOpen = false
+      if (!target.closest(".filter-dropdown")) filterDropdownOpen = false
+    }
+    document.addEventListener("click", handleClick)
+    return () => document.removeEventListener("click", handleClick)
   })
 
   async function loadConversations() {
@@ -96,32 +122,43 @@
     const diffMs = now.getTime() - date.getTime()
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-    if (diffDays === 0) return "Today"
-    if (diffDays === 1) return "Yesterday"
-    if (diffDays < 7) return `${diffDays} days ago`
+    if (diffDays === 0) return $t("date.today")
+    if (diffDays === 1) return $t("date.yesterday")
+    if (diffDays < 7) return $t("date.days", { count: diffDays })
     return date.toLocaleDateString()
   }
 
   function getSourceIcon(source: ConversationSource) {
     return source === "chatgpt" ? "🤖" : "✨"
   }
-
-  function flattenTOC(nodes: TOCNode[]): TOCNode[] {
-    return nodes.flatMap((n) => [
-      n,
-      ...(n.children ? flattenTOC(n.children) : [])
-    ])
-  }
 </script>
 
 <svelte:head>
+  <script>
+    ;(function () {
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        document.documentElement.style.setProperty("--bg-color", "#212121")
+        document.documentElement.style.background = "#212121"
+      } else {
+        document.documentElement.style.setProperty("--bg-color", "#ffffff")
+        document.documentElement.style.background = "#ffffff"
+      }
+    })()
+  </script>
   <style>
     html,
     body {
-      background: var(--bg-color);
+      background: var(--bg-color, #ffffff);
       margin: 0;
       padding: 0;
       overflow: hidden;
+    }
+    @media (prefers-color-scheme: dark) {
+      html,
+      body {
+        background: #212121;
+        --bg-color: #212121;
+      }
     }
   </style>
 </svelte:head>
@@ -131,7 +168,7 @@
   style="--bg-color: {tokens.bg}; background: {tokens.bg}; color: {tokens.text}; font-family: {tokens.font};"
   class:opacity-0={!isLoaded}
   class:opacity-100={isLoaded}>
-  <!-- Sidebar: Conversation List -->
+  <!-- Sidebar -->
   <aside
     class="w-80 flex-shrink-0 border-r flex flex-col"
     style="border-color: {tokens.border}; background: {tokens.bgSecondary};">
@@ -155,7 +192,7 @@
                 d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 class="font-semibold">Cached Conversations</h1>
+          <h1 class="font-semibold">{$t("history.title")}</h1>
         </div>
         <span
           class="text-xs px-2 py-1 rounded-full"
@@ -169,7 +206,7 @@
         <input
           type="text"
           bind:value={searchQuery}
-          placeholder="Search conversations..."
+          placeholder={$t("history.search")}
           class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border transition-colors"
           style="background: {tokens.bg}; border-color: {tokens.border}; color: {tokens.text};" />
         <svg
@@ -186,27 +223,128 @@
         </svg>
       </div>
 
-      <!-- Filters -->
+      <!-- Custom Dropdowns -->
       <div class="flex gap-2 mb-3">
-        <select
-          bind:value={sortBy}
-          class="flex-1 text-xs px-2 py-1.5 rounded-lg border"
-          style="background: {tokens.bg}; border-color: {tokens.border}; color: {tokens.text};">
-          <option value="date">Sort: Date</option>
-          <option value="title">Sort: Title</option>
-          <option value="length">Sort: Length</option>
-        </select>
-        <select
-          bind:value={filterSource}
-          class="flex-1 text-xs px-2 py-1.5 rounded-lg border"
-          style="background: {tokens.bg}; border-color: {tokens.border}; color: {tokens.text};">
-          <option value="all">All Sources</option>
-          <option value="chatgpt">ChatGPT</option>
-          <option value="gemini">Gemini</option>
-        </select>
+        <!-- Sort Dropdown -->
+        <div class="sort-dropdown relative flex-1">
+          <button
+            on:click|stopPropagation={() => {
+              sortDropdownOpen = !sortDropdownOpen
+              filterDropdownOpen = false
+            }}
+            class="w-full flex items-center justify-between px-2 py-1.5 text-xs rounded-lg border"
+            style="background: {tokens.bg}; border-color: {tokens.border}; color: {tokens.text};">
+            <span
+              >{$t(
+                sortOptions.find((o) => o.value === sortBy)?.key ||
+                  "history.sort.date"
+              )}</span>
+            <svg
+              class="w-3 h-3 transition-transform"
+              class:rotate-180={sortDropdownOpen}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {#if sortDropdownOpen}
+            <div
+              class="dropdown-menu absolute left-0 top-full mt-1 py-1 rounded-xl shadow-lg z-50 w-full"
+              style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border};">
+              {#each sortOptions as opt}
+                <button
+                  on:click={() => {
+                    sortBy = opt.value
+                    sortDropdownOpen = false
+                  }}
+                  class="dropdown-item w-full text-left px-3 py-2 text-xs flex items-center justify-between"
+                  style="color: {tokens.text};">
+                  <span>{$t(opt.key)}</span>
+                  {#if sortBy === opt.value}
+                    <svg
+                      class="w-3 h-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7" />
+                    </svg>
+                  {/if}
+                </button>
+              {/each}
+            </div>
+          {/if}
+        </div>
+
+        <!-- Filter Dropdown -->
+        <div class="filter-dropdown relative flex-1">
+          <button
+            on:click|stopPropagation={() => {
+              filterDropdownOpen = !filterDropdownOpen
+              sortDropdownOpen = false
+            }}
+            class="w-full flex items-center justify-between px-2 py-1.5 text-xs rounded-lg border"
+            style="background: {tokens.bg}; border-color: {tokens.border}; color: {tokens.text};">
+            <span
+              >{$t(
+                filterOptions.find((o) => o.value === filterSource)?.key ||
+                  "history.filter.all"
+              )}</span>
+            <svg
+              class="w-3 h-3 transition-transform"
+              class:rotate-180={filterDropdownOpen}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {#if filterDropdownOpen}
+            <div
+              class="dropdown-menu absolute left-0 top-full mt-1 py-1 rounded-xl shadow-lg z-50 w-full"
+              style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border};">
+              {#each filterOptions as opt}
+                <button
+                  on:click={() => {
+                    filterSource = opt.value
+                    filterDropdownOpen = false
+                  }}
+                  class="dropdown-item w-full text-left px-3 py-2 text-xs flex items-center justify-between"
+                  style="color: {tokens.text};">
+                  <span>{$t(opt.key)}</span>
+                  {#if filterSource === opt.value}
+                    <svg
+                      class="w-3 h-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7" />
+                    </svg>
+                  {/if}
+                </button>
+              {/each}
+            </div>
+          {/if}
+        </div>
       </div>
 
-      <!-- Clear All Button -->
+      <!-- Clear All (at bottom) -->
       {#if conversations.length > 0}
         <button
           on:click={handleClearAll}
@@ -214,7 +352,9 @@
           style="background: {confirmClearAll
             ? '#ef4444'
             : tokens.hover}; color: {confirmClearAll ? 'white' : '#ef4444'};">
-          {confirmClearAll ? "Click again to confirm" : "Clear All Cache"}
+          {confirmClearAll
+            ? $t("history.clear.confirm")
+            : $t("history.clear.all")}
         </button>
       {/if}
     </div>
@@ -226,14 +366,16 @@
           class="flex flex-col items-center justify-center h-full text-sm"
           style="color: {tokens.textSecondary};">
           <span class="text-3xl mb-2">📭</span>
-          <p>{searchQuery ? "No matches found" : "No cached conversations"}</p>
+          <p>
+            {searchQuery ? $t("history.empty.search") : $t("history.empty")}
+          </p>
         </div>
       {:else}
         <div class="p-2 space-y-1">
           {#each filteredConversations as conv (conv.id)}
             <button
               on:click={() => (selectedConversation = conv)}
-              class="w-full text-left p-3 rounded-xl transition-all duration-150"
+              class="conv-item w-full text-left p-3 rounded-xl transition-all duration-150"
               style="background: {selectedConversation?.id === conv.id
                 ? tokens.hover
                 : 'transparent'};">
@@ -248,7 +390,7 @@
                     <span
                       class="text-xs"
                       style="color: {tokens.textSecondary};">
-                      {conv.messageCount} turns
+                      {$t("history.turns", { count: conv.messageCount })}
                     </span>
                     <span class="text-xs" style="color: {tokens.textSecondary};"
                       >•</span>
@@ -261,7 +403,7 @@
                 </div>
                 <button
                   on:click|stopPropagation={() => handleDelete(conv.id)}
-                  class="p-1 rounded opacity-0 hover:opacity-100 transition-opacity"
+                  class="delete-btn p-1 rounded transition-opacity"
                   style="color: {tokens.textSecondary};">
                   <svg
                     class="w-4 h-4"
@@ -283,7 +425,7 @@
     </div>
   </aside>
 
-  <!-- Main Content: TOC Preview -->
+  <!-- Main Content -->
   <main class="flex-1 overflow-y-auto p-6">
     {#if selectedConversation}
       <div class="max-w-2xl mx-auto">
@@ -298,11 +440,20 @@
           <div
             class="flex items-center gap-3 text-sm"
             style="color: {tokens.textSecondary};">
-            <span>{selectedConversation.messageCount} conversation turns</span>
+            <span
+              >{$t("history.turns", {
+                count: selectedConversation.messageCount
+              })}</span>
             <span>•</span>
-            <span>Cached {formatDate(selectedConversation.cachedAt)}</span>
+            <span
+              >{$t("history.cached", {
+                date: formatDate(selectedConversation.cachedAt)
+              })}</span>
             <span>•</span>
-            <span>Updated {formatDate(selectedConversation.lastUpdated)}</span>
+            <span
+              >{$t("history.updated", {
+                date: formatDate(selectedConversation.lastUpdated)
+              })}</span>
           </div>
         </header>
 
@@ -343,17 +494,14 @@
         class="flex flex-col items-center justify-center h-full"
         style="color: {tokens.textSecondary};">
         <span class="text-5xl mb-4">📋</span>
-        <h2 class="text-lg font-medium mb-2">Select a conversation</h2>
-        <p class="text-sm">
-          Choose a cached conversation from the sidebar to preview its outline
-        </p>
+        <h2 class="text-lg font-medium mb-2">{$t("history.select")}</h2>
+        <p class="text-sm">{$t("history.select.hint")}</p>
       </div>
     {/if}
   </main>
 </div>
 
 <style>
-  /* Custom scrollbar */
   :global(.overflow-y-auto::-webkit-scrollbar) {
     width: 6px;
   }
@@ -365,18 +513,29 @@
     border-radius: 3px;
   }
 
-  /* Show delete button on hover */
-  button:has(+ button):hover + button,
-  button:hover svg.w-4 {
+  .delete-btn {
+    opacity: 0;
+  }
+  .conv-item:hover .delete-btn {
     opacity: 1;
   }
 
-  select {
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    background-size: 12px;
-    padding-right: 24px;
+  .dropdown-menu {
+    animation: dropdownIn 0.15s ease;
+  }
+
+  .dropdown-item:hover {
+    background: rgba(128, 128, 128, 0.1);
+  }
+
+  @keyframes dropdownIn {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 </style>
