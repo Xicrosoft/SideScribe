@@ -164,7 +164,9 @@
       <!-- Language Card with Dropdown -->
       <div
         class="settings-card p-4 rounded-2xl transition-all duration-200 animate-slideUp"
-        style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border}; animation-delay: 0.1s;">
+        style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border}; animation-delay: 0.1s; position: relative; z-index: {langDropdownOpen
+          ? 100
+          : 1};">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div
@@ -398,7 +400,7 @@
                 {$t("settings.cache.clear")}
               </div>
               <div class="text-xs" style="color: {tokens.textSecondary};">
-                Remove all cached data
+                {$t("settings.cache.clear.desc")}
               </div>
             </div>
           </div>
