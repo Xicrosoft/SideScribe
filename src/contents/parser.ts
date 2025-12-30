@@ -112,11 +112,29 @@ function sendTitleUpdate() {
         title = geminiTitle.textContent?.trim() || ""
     }
 
-    // For ChatGPT, try to get the conversation title from the page
-    if (!title) {
-        const chatgptTitle = document.querySelector('h1')
-        if (chatgptTitle) {
-            title = chatgptTitle.textContent?.trim() || ""
+    // For ChatGPT: Use the active conversation item in sidebar, or the document title
+    // Avoid using h1 as it may match AI response headings
+    if (!title && window.location.href.includes('chatgpt.com')) {
+        // Try: Active sidebar conversation title (has specific aria/state attributes)
+        const activeConv = document.querySelector('[data-testid="conversation-turn-list"]')?.closest('main')?.querySelector('h1')
+
+        // Fallback: Get from page/document title (more reliable)
+        // Format: "Conversation Title | ChatGPT"
+        const docTitle = document.title
+        if (docTitle && !docTitle.startsWith('ChatGPT')) {
+            title = docTitle.replace(' | ChatGPT', '').replace(' - ChatGPT', '').trim()
+        }
+
+        // Last resort: Find h1 that's NOT inside article (response content)
+        if (!title) {
+            const h1Elements = document.querySelectorAll('h1')
+            for (const h1 of h1Elements) {
+                // Skip if inside article (AI response) or markdown content
+                if (!h1.closest('article') && !h1.closest('.markdown')) {
+                    title = h1.textContent?.trim() || ""
+                    if (title) break
+                }
+            }
         }
     }
 

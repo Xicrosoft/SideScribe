@@ -113,13 +113,18 @@
         currentTabId = tabId
         currentTabUrl = tabs[0].url || ""
         host = detectHost(currentTabUrl)
-        // Default fallback title from tab (only if not already set)
-        if (!chatTitle) {
-          chatTitle =
-            tabs[0].title
-              ?.replace(" | ChatGPT", "")
-              .replace(" - Gemini", "")
-              .trim() || ""
+
+        // Get initial title from tab (will be overwritten by fresh TITLE_UPDATE)
+        const tabTitle =
+          tabs[0].title
+            ?.replace(" | ChatGPT", "")
+            .replace(" - ChatGPT", "")
+            .replace(" - Gemini", "")
+            .trim() || ""
+
+        // Only set if we don't have a title yet (avoid flicker)
+        if (!chatTitle && tabTitle) {
+          chatTitle = tabTitle
         }
 
         // Only try to communicate with content script on supported sites
@@ -132,14 +137,17 @@
           return
         }
 
-        // Immediate Load: Try to load from cache first
+        // Immediate Load: Try to load from cache first (only for TOC, prefer fresh title)
         const conversationId = getConversationId(currentTabUrl)
         if (conversationId) {
           const cached = await getCachedConversation(conversationId)
           if (cached && cached.toc.length > 0) {
             // Show cached TOC immediately
             tocStore.set(cached.toc)
-            chatTitle = cached.title || chatTitle
+            // Only use cached title if no tab title available
+            if (!chatTitle && cached.title && cached.title !== "Untitled") {
+              chatTitle = cached.title
+            }
             isFromCache = true
           }
         }
@@ -182,11 +190,12 @@
     changeInfo: chrome.tabs.TabChangeInfo
   ) => {
     if (tabId === currentTabId && changeInfo.url) {
-      // Reset title immediately on URL change (SPA navigation)
+      // Reset state immediately on URL change (SPA navigation)
       chatTitle = ""
+      isFromCache = false
       // Clear current TOC
       tocStore.set([])
-      // Fetch TOC
+      // Fetch TOC with fresh title
       fetchTOC()
       // Also fetch after a delay to catch SPA DOM updates
       setTimeout(fetchTOC, 500)
