@@ -1,4 +1,5 @@
-export { }
+import { debouncedSaveCachedConversation } from "./lib/storage"
+import type { CachedConversation } from "./lib/types"
 
 console.log("SideScribe background service worker loaded.")
 
@@ -60,5 +61,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 chrome.sidePanel.open({ windowId: tabs[0].windowId }).catch(() => { })
             }
         })
+    }
+
+    // Handle CACHE_UPDATE for TOC persistence
+    if (message.type === "CACHE_UPDATE") {
+        const payload = message.payload as Omit<CachedConversation, 'cachedAt' | 'lastUpdated'>
+        if (payload.id && payload.toc) {
+            debouncedSaveCachedConversation({
+                ...payload,
+                cachedAt: Date.now(),
+                lastUpdated: Date.now()
+            })
+        }
     }
 })

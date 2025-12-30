@@ -1,6 +1,6 @@
 import type { PlasmoCSConfig } from "plasmo"
 import { AdapterRegistry } from "../adapters/registry"
-import type { MessagePayload, ScrollToPayload } from "../lib/types"
+import type { MessagePayload, ScrollToPayload, ConversationSource, TOCNode } from "../lib/types"
 
 export const config: PlasmoCSConfig = {
     matches: ["https://gemini.google.com/*", "https://chatgpt.com/*"],
@@ -11,12 +11,45 @@ console.log("SideScribe Content Script Loaded")
 
 const registry = new AdapterRegistry()
 
-// Initialize based on current URL
-// Safe sendMessage helper
+// ============================================
+// Conversation ID Extraction
+// ============================================
+
+/**
+ * Extract conversation ID and source from current URL
+ * ChatGPT: https://chatgpt.com/c/{conversationId}
+ * Gemini: https://gemini.google.com/app/{conversationId}
+ */
+function getConversationInfo(): { id: string | null; source: ConversationSource } {
+    const url = window.location.href
+
+    // ChatGPT: /c/{id}
+    if (url.includes('chatgpt.com')) {
+        const match = url.match(/\/c\/([a-f0-9-]+)/i)
+        return { id: match ? match[1] : null, source: 'chatgpt' }
+    }
+
+    // Gemini: /app/{id}
+    if (url.includes('gemini.google.com')) {
+        const match = url.match(/\/app\/([a-f0-9]+)/i)
+        return { id: match ? match[1] : null, source: 'gemini' }
+    }
+
+    return { id: null, source: 'chatgpt' }
+}
+
+// Track current conversation for cache operations
+let currentConversationId: string | null = null
+let currentSource: ConversationSource = 'chatgpt'
+let currentTitle: string = ''
+
+// ============================================
+// Messaging Helpers
+// ============================================
+
 const safeSendMessage = (message: MessagePayload) => {
     if (chrome.runtime?.id) {
         chrome.runtime.sendMessage(message).catch(err => {
-            // Ignore context invalidated errors during reload or disconnected port
             if (err.message.includes("Extension context invalidated") || err.message.includes("closed")) return
             console.warn("SideScribe Message Error:", err)
         })
@@ -34,6 +67,11 @@ registry.init(window.location.href,
             detectionTimeout = null
         }
 
+        // Update conversation info
+        const convInfo = getConversationInfo()
+        currentConversationId = convInfo.id
+        currentSource = convInfo.source
+
         // On TOC Update, send to background/sidepanel
         safeSendMessage({
             type: "TOC_UPDATE",
@@ -42,6 +80,20 @@ registry.init(window.location.href,
 
         // Also send title update
         sendTitleUpdate()
+
+        // Send cache update if we have a valid conversation ID
+        if (currentConversationId && result.toc.length > 0) {
+            safeSendMessage({
+                type: "CACHE_UPDATE",
+                payload: {
+                    id: currentConversationId,
+                    title: currentTitle || 'Untitled',
+                    source: currentSource,
+                    toc: result.toc,
+                    messageCount: result.toc.length
+                }
+            })
+        }
     },
     (activeId) => {
         safeSendMessage({
@@ -69,6 +121,7 @@ function sendTitleUpdate() {
     }
 
     if (title) {
+        currentTitle = title // Store for cache operations
         safeSendMessage({
             type: "TITLE_UPDATE",
             payload: { title }

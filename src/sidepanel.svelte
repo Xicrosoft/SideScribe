@@ -5,6 +5,7 @@
 
   import TOCItem from "./components/TOCItem.svelte"
   import { t } from "./lib/i18n"
+  import { getCachedConversation } from "./lib/storage"
   import { activeNodeId, expandedTurnStore, tocStore } from "./lib/store"
   import {
     detectHost,
@@ -12,7 +13,7 @@
     type HostType,
     type ThemeMode
   } from "./lib/theme-tokens"
-  import type { MessagePayload, TOCNode } from "./lib/types"
+  import type { ConversationSource, MessagePayload, TOCNode } from "./lib/types"
 
   let toc: TOCNode[] = []
   let activeId: string | null = null
@@ -34,6 +35,7 @@
   let host: HostType = "generic"
   let currentTabId: number | undefined
   let currentTabUrl: string = ""
+  let isFromCache = false // Indicates if current TOC is from cache
 
   // Check if current site is supported
   $: isSupportedSite =
@@ -78,8 +80,25 @@
     }, [])
   }
 
-  function fetchTOC(clearExisting = false) {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+  /**
+   * Extract conversation ID from URL for cache lookup
+   */
+  function getConversationId(url: string): string | null {
+    // ChatGPT: /c/{id}
+    if (url.includes("chatgpt.com")) {
+      const match = url.match(/\/c\/([a-f0-9-]+)/i)
+      return match ? match[1] : null
+    }
+    // Gemini: /app/{id}
+    if (url.includes("gemini.google.com")) {
+      const match = url.match(/\/app\/([a-f0-9]+)/i)
+      return match ? match[1] : null
+    }
+    return null
+  }
+
+  async function fetchTOC(clearExisting = false) {
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
       if (tabs[0]?.id) {
         const tabId = tabs[0].id
         const isSwitchingTab =
@@ -89,6 +108,7 @@
           tocStore.set([])
           chatTitle = ""
           needsRefresh = false
+          isFromCache = false
         }
         currentTabId = tabId
         currentTabUrl = tabs[0].url || ""
@@ -111,12 +131,26 @@
           needsRefresh = false
           return
         }
+
+        // Immediate Load: Try to load from cache first
+        const conversationId = getConversationId(currentTabUrl)
+        if (conversationId) {
+          const cached = await getCachedConversation(conversationId)
+          if (cached && cached.toc.length > 0) {
+            // Show cached TOC immediately
+            tocStore.set(cached.toc)
+            chatTitle = cached.title || chatTitle
+            isFromCache = true
+          }
+        }
+
         // Request fresh TOC and title, detect if content script is alive
         chrome.tabs
           .sendMessage(tabId, { type: "REQUEST_TOC" })
           .then(() => {
             // Content script responded, connection is alive
             needsRefresh = false
+            isFromCache = false // Fresh data will replace cache
           })
           .catch(() => {
             // Content script not responding - likely extension was reloaded

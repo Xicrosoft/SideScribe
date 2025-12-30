@@ -33,6 +33,7 @@ export type MessageType =
   | "REQUEST_TITLE"
   | "TITLE_UPDATE"
   | "OPEN_SIDEPANEL"
+  | "CACHE_UPDATE"
 
 export interface MessagePayload {
   type: MessageType
