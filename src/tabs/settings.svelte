@@ -9,8 +9,7 @@
 
   let effectiveTheme: ThemeMode = "light"
   let currentLang: Language = "en"
-  let cacheEnabled = true
-  let defaultAction: "popup" | "sidepanel" = "sidepanel"
+  let tocCacheEnabled = true
   let cacheCleared = false
   let isLoaded = false
 
@@ -24,15 +23,10 @@
       effectiveTheme = "dark"
     }
 
-    // Load settings
-    const savedAction = await storage.get("defaultAction")
-    if (savedAction === "popup" || savedAction === "sidepanel") {
-      defaultAction = savedAction
-    }
-
-    const savedCache = await storage.get("cacheEnabled")
-    if (typeof savedCache === "boolean") {
-      cacheEnabled = savedCache
+    // Load TOC cache setting
+    const savedTocCache = await storage.get(STORAGE_KEYS.TOC_CACHE_ENABLED)
+    if (typeof savedTocCache === "boolean") {
+      tocCacheEnabled = savedTocCache
     }
 
     // Mark as loaded
@@ -41,19 +35,14 @@
 
   async function clearCache() {
     await storage.remove(STORAGE_KEYS.EXPANDED_TURNS)
-    await storage.remove(STORAGE_KEYS.OVERLAY_OPEN)
+    await storage.remove(STORAGE_KEYS.CACHED_CONVERSATIONS)
     cacheCleared = true
     setTimeout(() => (cacheCleared = false), 2000)
   }
 
-  function toggleCache() {
-    cacheEnabled = !cacheEnabled
-    storage.set("cacheEnabled", cacheEnabled)
-  }
-
-  function setDefaultAction(action: "popup" | "sidepanel") {
-    defaultAction = action
-    storage.set("defaultAction", action)
+  function toggleTocCache() {
+    tocCacheEnabled = !tocCacheEnabled
+    storage.set(STORAGE_KEYS.TOC_CACHE_ENABLED, tocCacheEnabled)
   }
 
   function setLanguage(lang: Language) {
@@ -130,23 +119,25 @@
       <div
         class="space-y-4 p-4 rounded-lg"
         style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border};">
-        <!-- Cache Toggle -->
+        <!-- TOC Cache Toggle -->
         <div class="flex items-center justify-between">
           <div>
             <div class="font-medium">{$t("settings.cache")}</div>
             <div class="text-xs" style="color: {tokens.textSecondary};">
-              Remember expanded items between sessions
+              Cache conversation outlines for faster loading
             </div>
           </div>
           <button
-            on:click={toggleCache}
+            on:click={toggleTocCache}
             class="relative w-12 h-6 rounded-full transition-colors"
-            style="background: {cacheEnabled ? tokens.accent : tokens.border};">
+            style="background: {tocCacheEnabled
+              ? tokens.accent
+              : tokens.border};">
             <div
               class="absolute top-1 w-4 h-4 rounded-full transition-transform"
               style="
                 background: {tokens.bg};
-                left: {cacheEnabled ? '26px' : '4px'};
+                left: {tocCacheEnabled ? '26px' : '4px'};
               ">
             </div>
           </button>

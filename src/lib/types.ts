@@ -9,6 +9,18 @@ export interface TOCNode {
   speaker?: 'user' | 'ai' // For marking user prompts vs AI responses
 }
 
+export type ConversationSource = 'chatgpt' | 'gemini'
+
+export interface CachedConversation {
+  id: string                       // Conversation ID from URL
+  title: string
+  source: ConversationSource
+  toc: TOCNode[]
+  messageCount: number
+  cachedAt: number                 // First cached timestamp
+  lastUpdated: number              // Last modification timestamp
+}
+
 export type MessageType =
   | "TOC_UPDATE"
   | "SCROLL_TO"

@@ -82,7 +82,7 @@ function createPersistedValue<T>(key: string, defaultVal: T) {
 }
 
 export const expandedTurnStore = createPersistedSet(STORAGE_KEYS.EXPANDED_TURNS)
-export const overlayOpenStore = createPersistedBoolean(STORAGE_KEYS.OVERLAY_OPEN, true)
+export const tocCacheEnabledStore = createPersistedBoolean(STORAGE_KEYS.TOC_CACHE_ENABLED, true)
 
 export const settingsStore = createPersistedValue('settings', {
     autoExpand: true
