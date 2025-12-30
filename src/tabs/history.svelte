@@ -207,8 +207,8 @@
           type="text"
           bind:value={searchQuery}
           placeholder={$t("history.search")}
-          class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border transition-colors"
-          style="background: {tokens.bg}; border-color: {tokens.border}; color: {tokens.text};" />
+          class="search-input w-full pl-9 pr-3 py-2 text-sm rounded-lg"
+          style="background: {tokens.bg}; --border-color: {tokens.border}; --focus-border-color: {tokens.accent}; color: {tokens.text};" />
         <svg
           class="w-4 h-4 absolute left-3 top-2.5"
           style="color: {tokens.textSecondary};"
@@ -343,20 +343,6 @@
           {/if}
         </div>
       </div>
-
-      <!-- Clear All (at bottom) -->
-      {#if conversations.length > 0}
-        <button
-          on:click={handleClearAll}
-          class="w-full text-xs py-2 rounded-lg transition-colors"
-          style="background: {confirmClearAll
-            ? '#ef4444'
-            : tokens.hover}; color: {confirmClearAll ? 'white' : '#ef4444'};">
-          {confirmClearAll
-            ? $t("history.clear.confirm")
-            : $t("history.clear.all")}
-        </button>
-      {/if}
     </div>
 
     <!-- Conversation List -->
@@ -423,6 +409,22 @@
         </div>
       {/if}
     </div>
+
+    <!-- Clear All (at bottom of sidebar) -->
+    {#if conversations.length > 0}
+      <div class="p-4 border-t" style="border-color: {tokens.border};">
+        <button
+          on:click={handleClearAll}
+          class="w-full text-xs py-2 rounded-lg transition-colors"
+          style="background: {confirmClearAll
+            ? '#ef4444'
+            : tokens.hover}; color: {confirmClearAll ? 'white' : '#ef4444'};">
+          {confirmClearAll
+            ? $t("history.clear.confirm")
+            : $t("history.clear.all")}
+        </button>
+      </div>
+    {/if}
   </aside>
 
   <!-- Main Content -->
@@ -518,6 +520,15 @@
   }
   .conv-item:hover .delete-btn {
     opacity: 1;
+  }
+
+  .search-input {
+    border: 1px solid var(--border-color);
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+  .search-input:focus {
+    border-color: var(--focus-border-color);
   }
 
   .dropdown-menu {
