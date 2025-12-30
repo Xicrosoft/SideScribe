@@ -1,7 +1,11 @@
 import { Storage } from "@plasmohq/storage"
 import type { CachedConversation, TOCNode } from "./types"
 
-export const storage = new Storage()
+// Sync storage for small settings (8KB/item limit, syncs across devices)
+export const storage = new Storage({ area: "sync" })
+
+// Local storage for cache data (10MB limit, local only)
+export const localStorage = new Storage({ area: "local" })
 
 export const STORAGE_KEYS = {
     EXPANDED_TURNS: "expanded_turns", // JSON stringified Set
@@ -129,7 +133,7 @@ export function mergeTOC(cached: TOCNode[], fresh: TOCNode[]): TOCNode[] {
  * Get all cached conversations
  */
 export async function getAllCachedConversations(): Promise<Record<string, CachedConversation>> {
-    const data = await storage.get(STORAGE_KEYS.CACHED_CONVERSATIONS)
+    const data = await localStorage.get(STORAGE_KEYS.CACHED_CONVERSATIONS)
     if (!data) return {}
     try {
         return typeof data === 'string' ? JSON.parse(data) : data
@@ -171,7 +175,7 @@ export async function saveCachedConversation(conversation: CachedConversation): 
         }
     }
 
-    await storage.set(STORAGE_KEYS.CACHED_CONVERSATIONS, all)
+    await localStorage.set(STORAGE_KEYS.CACHED_CONVERSATIONS, all)
 }
 
 /**
@@ -180,14 +184,14 @@ export async function saveCachedConversation(conversation: CachedConversation): 
 export async function deleteCachedConversation(id: string): Promise<void> {
     const all = await getAllCachedConversations()
     delete all[id]
-    await storage.set(STORAGE_KEYS.CACHED_CONVERSATIONS, all)
+    await localStorage.set(STORAGE_KEYS.CACHED_CONVERSATIONS, all)
 }
 
 /**
  * Clear all cached conversations
  */
 export async function clearAllCachedConversations(): Promise<void> {
-    await storage.remove(STORAGE_KEYS.CACHED_CONVERSATIONS)
+    await localStorage.remove(STORAGE_KEYS.CACHED_CONVERSATIONS)
 }
 
 // ============================================

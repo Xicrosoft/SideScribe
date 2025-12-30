@@ -84,19 +84,7 @@
   style="--bg-color: {tokens.bg}; background: {tokens.bg}; color: {tokens.text}; font-family: {tokens.font};"
   class:opacity-0={!isLoaded}
   class:opacity-100={isLoaded}>
-  <!-- Animated background gradient -->
-  <div
-    class="fixed inset-0 pointer-events-none overflow-hidden"
-    style="z-index: 0;">
-    <div
-      class="absolute -top-1/2 -left-1/2 w-full h-full rounded-full blur-3xl animate-pulse"
-      style="background: radial-gradient(circle, {isDark
-        ? 'rgba(99,102,241,0.05)'
-        : 'rgba(99,102,241,0.03)'}, transparent 70%);">
-    </div>
-  </div>
-
-  <div class="relative z-10 max-w-xl mx-auto px-6 py-12">
+  <div class="max-w-xl mx-auto px-6 py-12">
     <!-- Header with animation -->
     <header class="mb-10 animate-fadeIn">
       <div class="flex items-center gap-3 mb-3">
@@ -167,7 +155,9 @@
               style="background: {currentLang === 'en'
                 ? tokens.accent
                 : 'transparent'}; color: {currentLang === 'en'
-                ? 'white'
+                ? isDark
+                  ? '#000'
+                  : '#fff'
                 : tokens.textSecondary};">
               EN
             </button>
@@ -177,7 +167,9 @@
               style="background: {currentLang === 'zh'
                 ? tokens.accent
                 : 'transparent'}; color: {currentLang === 'zh'
-                ? 'white'
+                ? isDark
+                  ? '#000'
+                  : '#fff'
                 : tokens.textSecondary};">
               中文
             </button>
@@ -224,9 +216,7 @@
               : tokens.border};">
             <div
               class="toggle-knob"
-              style="transform: translateX({tocCacheEnabled
-                ? '18px'
-                : '2px'});">
+              style="left: {tocCacheEnabled ? '22px' : '2px'};">
             </div>
           </button>
         </div>
