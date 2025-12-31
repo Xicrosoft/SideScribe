@@ -65,7 +65,9 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
         "date.yesterday": "Yesterday",
         "date.days": "{count} days ago",
         "error.generic": "Unable to read content. This might be a restricted page or the chat hasn't loaded yet.",
-        "footer.made": "Made with ❤️ for AI conversations"
+        "footer.made": "Made with ❤️ for AI conversations",
+        "settings.page.title": "Settings",
+        "history.page.title": "Conversations"
     },
     'zh-Hans': {
         "toc.title": "目录",
@@ -112,7 +114,9 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
         "date.yesterday": "昨天",
         "date.days": "{count} 天前",
         "error.generic": "无法读取内容。可能是受限页面或对话尚未加载。",
-        "footer.made": "用 ❤️ 为 AI 对话打造"
+        "footer.made": "用 ❤️ 为 AI 对话打造",
+        "settings.page.title": "设置",
+        "history.page.title": "对话"
     },
     'zh-Hant': {
         "toc.title": "目錄",
@@ -159,7 +163,9 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
         "date.yesterday": "昨天",
         "date.days": "{count} 天前",
         "error.generic": "無法讀取內容。可能是受限頁面或對話尚未載入。",
-        "footer.made": "用 ❤️ 為 AI 對話打造"
+        "footer.made": "用 ❤️ 為 AI 對話打造",
+        "settings.page.title": "設定",
+        "history.page.title": "對話"
     },
     fr: {
         "toc.title": "Table des matières",
@@ -206,7 +212,9 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
         "date.yesterday": "Hier",
         "date.days": "Il y a {count} jours",
         "error.generic": "Impossible de lire le contenu. Page restreinte ou chat non chargé.",
-        "footer.made": "Fait avec ❤️ pour les conversations IA"
+        "footer.made": "Fait avec ❤️ pour les conversations IA",
+        "settings.page.title": "Paramètres",
+        "history.page.title": "Conversations"
     },
     ru: {
         "toc.title": "Содержание",
@@ -253,7 +261,9 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
         "date.yesterday": "Вчера",
         "date.days": "{count} дней назад",
         "error.generic": "Не удалось прочитать содержимое. Ограниченная страница или чат не загружен.",
-        "footer.made": "Сделано с ❤️ для ИИ-бесед"
+        "footer.made": "Сделано с ❤️ для ИИ-бесед",
+        "settings.page.title": "Настройки",
+        "history.page.title": "Чаты"
     },
     ja: {
         "toc.title": "目次",
@@ -300,7 +310,9 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
         "date.yesterday": "昨日",
         "date.days": "{count} 日前",
         "error.generic": "コンテンツを読み取れません。制限されたページまたはチャットがまだ読み込まれていません。",
-        "footer.made": "❤️ を込めてAI会話用に作成"
+        "footer.made": "❤️ を込めてAI会話用に作成",
+        "settings.page.title": "設定",
+        "history.page.title": "会話"
     },
     ko: {
         "toc.title": "목차",
@@ -347,7 +359,9 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
         "date.yesterday": "어제",
         "date.days": "{count}일 전",
         "error.generic": "콘텐츠를 읽을 수 없습니다. 제한된 페이지이거나 채팅이 아직 로드되지 않았습니다.",
-        "footer.made": "❤️로 AI 대화를 위해 제작"
+        "footer.made": "❤️로 AI 대화를 위해 제작",
+        "settings.page.title": "설정",
+        "history.page.title": "대화"
     }
 }
 

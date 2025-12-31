@@ -168,6 +168,7 @@
       }
     })()
   </script>
+  <title>{$t("history.page.title")} - SideScribe</title>
   <style>
     html,
     body {

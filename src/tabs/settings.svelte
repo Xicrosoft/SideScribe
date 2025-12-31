@@ -133,6 +133,7 @@
       }
     })()
   </script>
+  <title>{$t("settings.page.title")} - SideScribe</title>
   <style>
     html,
     body {
