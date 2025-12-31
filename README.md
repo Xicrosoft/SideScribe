@@ -7,22 +7,36 @@
 - 📑 **Auto-generated TOC**: Automatically parses headings and key sections from chat conversations.
 - 🎯 **Smart Navigation**: Click any item to smooth-scroll to that position in the chat.
 - 🕵️ **Scroll Spy**: Automatically highlights the active section in the TOC as you scroll.
-- 💾 **Local Caching**: Remembers the TOC structure of your past conversations (syncs across devices for small data, local for large).
-- 🌓 **Theme Support**: Adapts to Light/Dark mode.
+- 💾 **Local Caching**: Remembers the TOC structure of your past conversations.
+- 🌓 **Theme Support**: Seamlessly matches the host site’s Light/Dark theme for a native-feeling experience.
 
 ## Supported Websites
 
 - [x] **Google Gemini** (`gemini.google.com`)
-- [x] **ChatGPT** (`chatgpt.com`) - *Partial support*
+- [x] **ChatGPT** (`chatgpt.com`)
 
 ## Installation
+
+You can download the latest **`.crx`** or **`.zip`** from the [**Releases**](https://github.com/Xicrosoft/SideScribe/releases) page. 
+
+### Install from `.crx` (recommended)
+1. Download the latest `.crx` file from Releases.
+2. Open `chrome://extensions` in Chrome.
+3. Enable **Developer mode** (top right).
+4. Drag and drop the `.crx` file into the Extensions page to install.
+
+### Install from `.zip` (unpacked)
+1. Download the `.zip` file from Releases and unzip it.
+2. Open `chrome://extensions` in Chrome.
+3. Enable **Developer mode**.
+4. Click **Load unpacked** and select the unzipped folder.
 
 ### From Source
 
 1.  **Clone the repository**:
     ```bash
-    git clone https://github.com/yourusername/side-scribe.git
-    cd side-scribe
+    git clone https://github.com/Xicrosoft/SideScribe.git
+    cd SideScribe
     ```
 
 2.  **Install dependencies**:
