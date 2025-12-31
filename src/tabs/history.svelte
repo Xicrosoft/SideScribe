@@ -17,11 +17,21 @@
   } from "../lib/types"
 
   // Detect theme BEFORE render to prevent flash
-  let effectiveTheme: ThemeMode =
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches
+  // Theme persistence to prevent flash
+  const THEME_CACHE_KEY = "side_scribe_theme_cache"
+  const getInitialTheme = (): ThemeMode => {
+    // Try synchronous local storage first
+    if (typeof localStorage !== "undefined") {
+      const cached = localStorage.getItem(THEME_CACHE_KEY)
+      if (cached === "dark" || cached === "light") return cached as ThemeMode
+    }
+    // Fallback to media query
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
       ? "dark"
       : "light"
+  }
+
+  let effectiveTheme: ThemeMode = getInitialTheme()
 
   let isLoaded = false
   let conversations: CachedConversation[] = []
@@ -136,7 +146,20 @@
 <svelte:head>
   <script>
     ;(function () {
-      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      let theme = "light"
+      try {
+        const cached = localStorage.getItem("side_scribe_theme_cache")
+        if (cached === "dark" || cached === "light") {
+          theme = cached
+        } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          theme = "dark"
+        }
+      } catch (e) {
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+          theme = "dark"
+      }
+
+      if (theme === "dark") {
         document.documentElement.style.setProperty("--bg-color", "#212121")
         document.documentElement.style.background = "#212121"
       } else {

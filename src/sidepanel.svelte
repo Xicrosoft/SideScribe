@@ -18,11 +18,21 @@
   let toc: TOCNode[] = []
   let activeId: string | null = null
   let searchQuery = ""
-  let effectiveTheme: ThemeMode = window.matchMedia(
-    "(prefers-color-scheme: dark)"
-  ).matches
-    ? "dark"
-    : "light"
+  // Theme persistence to prevent flash
+  const THEME_CACHE_KEY = "side_scribe_theme_cache"
+  const getInitialTheme = (): ThemeMode => {
+    // Try synchronous local storage first
+    if (typeof localStorage !== "undefined") {
+      const cached = localStorage.getItem(THEME_CACHE_KEY)
+      if (cached === "dark" || cached === "light") return cached as ThemeMode
+    }
+    // Fallback to media query
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light"
+  }
+
+  let effectiveTheme: ThemeMode = getInitialTheme()
   let chatTitle = ""
   let needsRefresh = false // True when content script is not responding
 
@@ -211,6 +221,7 @@
         activeNodeId.set(message.payload.activeNodeId)
       } else if (message.type === "THEME_CHANGE") {
         effectiveTheme = message.payload.theme
+        localStorage.setItem(THEME_CACHE_KEY, effectiveTheme)
       } else if (message.type === "TITLE_UPDATE") {
         chatTitle = message.payload.title || chatTitle
       }
