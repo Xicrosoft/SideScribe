@@ -1,35 +1,79 @@
-This is a [Plasmo extension](https://docs.plasmo.com/) project bootstrapped with [`plasmo init`](https://www.npmjs.com/package/plasmo).
+# SideScribe - AI Chat Table of Contents
 
-## Getting Started
+**SideScribe** is a Chrome Extension that generates a dynamic Table of Contents (TOC) for AI chat interfaces like Google Gemini and ChatGPT. It uses the Chrome Side Panel API to provide seamless navigation through long conversations without cluttering the main interface.
 
-First, make sure to replace `type="ts"` with `lang="ts"` in your Svelte components.
+## Features
 
-Second, run the development server:
+- 📑 **Auto-generated TOC**: Automatically parses headings and key sections from chat conversations.
+- 🎯 **Smart Navigation**: Click any item to smooth-scroll to that position in the chat.
+- 🕵️ **Scroll Spy**: Automatically highlights the active section in the TOC as you scroll.
+- 💾 **Local Caching**: Remembers the TOC structure of your past conversations.
+- 🌓 **Theme Support**: Seamlessly matches the host site’s Light/Dark theme for a native-feeling experience.
 
-```bash
-pnpm dev
-# or
-npm run dev
-```
+## Supported Websites
 
-Open your browser and load the appropriate development build. For example, if you are developing for the chrome browser, using manifest v3, use: `build/chrome-mv3-dev`.
+- [x] **Google Gemini** (`gemini.google.com`)
+- [x] **ChatGPT** (`chatgpt.com`)
 
-You can start editing the popup by modifying `popup.tsx`. It should auto-update as you make changes. To add an options page, simply add a `options.tsx` file to the root of the project, with a react component default exported. Likewise to add a content page, add a `content.ts` file to the root of the project, importing some module and do some logic, then reload the extension on your browser.
+## Installation
 
-For further guidance, [visit our Documentation](https://docs.plasmo.com/)
+You can download the latest **`.crx`** or **`.zip`** from the [**Releases**](https://github.com/Xicrosoft/SideScribe/releases) page. 
 
-## Making production build
+### Install from `.crx` (recommended)
+1. Download the latest `.crx` file from Releases.
+2. Open `chrome://extensions` in Chrome.
+3. Enable **Developer mode** (top right).
+4. Drag and drop the `.crx` file into the Extensions page to install.
 
-Run the following:
+### Install from `.zip` (unpacked)
+1. Download the `.zip` file from Releases and unzip it.
+2. Open `chrome://extensions` in Chrome.
+3. Enable **Developer mode**.
+4. Click **Load unpacked** and select the unzipped folder.
 
-```bash
-pnpm build
-# or
-npm run build
-```
+### From Source
 
-This should create a production bundle for your extension, ready to be zipped and published to the stores.
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/Xicrosoft/SideScribe.git
+    cd SideScribe
+    ```
 
-## Submit to the webstores
+2.  **Install dependencies**:
+    ```bash
+    pnpm install
+    # or npm install
+    ```
 
-The easiest way to deploy your Plasmo extension is to use the built-in [bpp](https://bpp.browser.market) GitHub action. Prior to using this action however, make sure to build your extension and upload the first version to the store to establish the basic credentials. Then, simply follow [this setup instruction](https://docs.plasmo.com/framework/workflows/submit) and you should be on your way for automated submission!
+3.  **Build the extension**:
+    ```bash
+    pnpm build
+    ```
+
+4.  **Load in Chrome**:
+    - Open `chrome://extensions/`
+    - Enable "Developer mode" (top right).
+    - Click "Load unpacked".
+    - Select the `build/chrome-mv3-prod` directory.
+
+## Usage
+
+1.  Open a supported chat website (e.g., Gemini).
+2.  Click the SideScribe extension icon in the toolbar to open the Side Panel.
+3.  The Table of Contents will appear automatically.
+4.  Navigate through your conversation!
+
+## Roadmap
+
+- [ ] **More Adapters**: Support for Claude, Perplexity, and other AI chat interfaces.
+- [ ] **Full Conversation Caching**: Save the complete text of conversations for offline viewing.
+- [ ] **Bookmarks**: Ability to "Star" or bookmark specific conversations for quick access.
+- [ ] **Export**: Export conversations to Markdown or JSON formats.
+
+## Development
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development instructions.
+
+## License
+
+MIT License. See [LICENSE](LICENSE) for more information.
