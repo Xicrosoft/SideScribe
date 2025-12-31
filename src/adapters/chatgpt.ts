@@ -199,7 +199,7 @@ export class ChatGPTAdapter implements ISiteAdapter {
 
     private parseWithDebounce() {
         if (this.debounceTimer) clearTimeout(this.debounceTimer)
-        this.debounceTimer = setTimeout(() => {
+        this.debounceTimer = window.setTimeout(() => {
             const result = this.parse()
             this.registerScrollSpyElements()
             if (this.onUpdate) this.onUpdate(result)

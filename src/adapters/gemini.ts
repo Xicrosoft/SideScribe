@@ -209,7 +209,7 @@ export class GeminiAdapter implements ISiteAdapter {
 
     private parseWithDebounce() {
         if (this.debounceTimer) clearTimeout(this.debounceTimer)
-        this.debounceTimer = setTimeout(() => {
+        this.debounceTimer = window.setTimeout(() => {
             if (this.onUpdate) {
                 const result = this.parse()
                 this.registerScrollSpyElements()

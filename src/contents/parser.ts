@@ -171,7 +171,7 @@ function sendTitleUpdate() {
 }
 
 // Set a timeout to warn if no content found
-detectionTimeout = setTimeout(() => {
+detectionTimeout = window.setTimeout(() => {
   const adapter = registry.getActiveAdapter()
   if (!adapter) {
     // No adapter match at all?

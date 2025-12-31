@@ -15,6 +15,10 @@
       ]
     },
     "baseUrl": ".",
-    "types": ["svelte"]
+    "types": [
+      "svelte",
+      "chrome",
+      "node"
+    ]
   }
 }
