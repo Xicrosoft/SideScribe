@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { initSentry } from "../lib/sentry"
+
   import "../style.css"
 
   import { onMount } from "svelte"
@@ -19,6 +21,8 @@
   } from "../lib/storage"
   import { THEME_TOKENS, type ThemeMode } from "../lib/theme-tokens"
 
+  initSentry("tab")
+
   // Detect theme BEFORE any render to prevent flash
   // Theme persistence to prevent flash
   const THEME_CACHE_KEY = "side_scribe_theme_cache"
@@ -38,6 +42,7 @@
 
   let currentLang: Language = "auto"
   let tocCacheEnabled = true
+  let telemetryEnabled = false
   let cacheCleared = false
   let isLoaded = false
   let cachedCount = 0
@@ -53,6 +58,12 @@
     const savedTocCache = await storage.get(STORAGE_KEYS.TOC_CACHE_ENABLED)
     if (typeof savedTocCache === "boolean") {
       tocCacheEnabled = savedTocCache
+    }
+
+    // Load telemetry setting
+    const savedTelemetry = await storage.get(STORAGE_KEYS.TELEMETRY_ENABLED)
+    if (typeof savedTelemetry === "boolean") {
+      telemetryEnabled = savedTelemetry
     }
 
     // Get cached conversation count
@@ -89,6 +100,11 @@
   function setLanguage(lang: Language) {
     languageStore.set(lang)
     langDropdownOpen = false
+  }
+
+  function toggleTelemetry() {
+    telemetryEnabled = !telemetryEnabled
+    storage.set(STORAGE_KEYS.TELEMETRY_ENABLED, telemetryEnabled)
   }
 
   function openCacheManager() {
@@ -327,6 +343,48 @@
             <div
               class="toggle-knob"
               style="left: {tocCacheEnabled ? '22px' : '2px'};">
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Telemetry Toggle Card -->
+      <div
+        class="settings-card p-4 rounded-2xl transition-all duration-200 animate-slideUp"
+        style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border}; animation-delay: 0.17s;">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div
+              class="icon-box"
+              style="background: {isDark
+                ? 'rgba(139,92,246,0.15)'
+                : 'rgba(139,92,246,0.1)'}; color: #8b5cf6;">
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <div>
+              <div class="font-medium text-sm">{$t("settings.telemetry")}</div>
+              <div class="text-xs" style="color: {tokens.textSecondary};">
+                {$t("settings.telemetry.desc")}
+              </div>
+            </div>
+          </div>
+          <button
+            on:click={toggleTelemetry}
+            class="toggle-switch"
+            style="background: {telemetryEnabled ? '#0285ff' : '#676767'};">
+            <div
+              class="toggle-knob"
+              style="left: {telemetryEnabled ? '22px' : '2px'};">
             </div>
           </button>
         </div>

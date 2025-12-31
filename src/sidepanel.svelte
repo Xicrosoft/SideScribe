@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { initSentry } from "./lib/sentry"
+
   import "./style.css"
 
   import { onDestroy, onMount } from "svelte"
@@ -14,6 +16,8 @@
     type ThemeMode
   } from "./lib/theme-tokens"
   import type { ConversationSource, MessagePayload, TOCNode } from "./lib/types"
+
+  initSentry("sidepanel")
 
   let toc: TOCNode[] = []
   let activeId: string | null = null

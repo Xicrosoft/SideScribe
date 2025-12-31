@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { initSentry } from "../lib/sentry"
+
   import "../style.css"
 
   import { onMount } from "svelte"
@@ -15,6 +17,8 @@
     ConversationSource,
     TOCNode
   } from "../lib/types"
+
+  initSentry("tab")
 
   // Detect theme BEFORE render to prevent flash
   // Theme persistence to prevent flash
