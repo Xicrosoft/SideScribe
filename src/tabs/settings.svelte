@@ -3,6 +3,7 @@
 
   import { onMount } from "svelte"
 
+  import logo from "../../assets/icon.svg"
   import {
     effectiveLanguage,
     LANGUAGE_META,
@@ -135,21 +136,7 @@
     <!-- Header -->
     <header class="mb-10 animate-fadeIn">
       <div class="flex items-center gap-3 mb-3">
-        <div
-          class="w-10 h-10 rounded-xl flex items-center justify-center"
-          style="background: linear-gradient(135deg, #0285ff, #0066cc);">
-          <svg
-            class="w-5 h-5 text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 6h16M4 12h16m-7 6h7" />
-          </svg>
-        </div>
+        <img src={logo} alt="SideScribe Logo" class="w-10 h-10" />
         <div>
           <h1 class="text-xl font-semibold tracking-tight">
             {$t("settings.title")}
