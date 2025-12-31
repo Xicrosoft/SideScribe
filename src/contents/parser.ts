@@ -131,7 +131,7 @@ function sendTitleUpdate() {
 
   // For ChatGPT: Use the active conversation item in sidebar, or the document title
   // Avoid using h1 as it may match AI response headings
-  if (!title && window.location.href.includes("chatgpt.com")) {
+  if (!title && window.location.hostname === "chatgpt.com") {
     // Try: Active sidebar conversation title (has specific aria/state attributes)
     const activeConv = document
       .querySelector('[data-testid="conversation-turn-list"]')
