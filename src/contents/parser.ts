@@ -33,17 +33,17 @@ function getConversationInfo(): {
   id: string | null
   source: ConversationSource
 } {
-  const url = window.location.href
+  const { hostname, href } = window.location
 
   // ChatGPT: /c/{id}
-  if (url.includes("chatgpt.com")) {
-    const match = url.match(/\/c\/([a-f0-9-]+)/i)
+  if (hostname === "chatgpt.com") {
+    const match = href.match(/\/c\/([a-f0-9-]+)/i)
     return { id: match ? match[1] : null, source: "chatgpt" }
   }
 
   // Gemini: /app/{id}
-  if (url.includes("gemini.google.com")) {
-    const match = url.match(/\/app\/([a-f0-9]+)/i)
+  if (hostname === "gemini.google.com") {
+    const match = href.match(/\/app\/([a-f0-9]+)/i)
     return { id: match ? match[1] : null, source: "gemini" }
   }
 
