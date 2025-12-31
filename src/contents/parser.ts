@@ -34,15 +34,16 @@ function getConversationInfo(): {
   source: ConversationSource
 } {
   const url = window.location.href
+  const hostname = window.location.hostname
 
   // ChatGPT: /c/{id}
-  if (url.includes("chatgpt.com")) {
+  if (hostname === "chatgpt.com" || hostname.endsWith(".chatgpt.com")) {
     const match = url.match(/\/c\/([a-f0-9-]+)/i)
     return { id: match ? match[1] : null, source: "chatgpt" }
   }
 
   // Gemini: /app/{id}
-  if (url.includes("gemini.google.com")) {
+  if (hostname === "gemini.google.com" || hostname.endsWith(".gemini.google.com")) {
     const match = url.match(/\/app\/([a-f0-9]+)/i)
     return { id: match ? match[1] : null, source: "gemini" }
   }
