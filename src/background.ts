@@ -26,7 +26,11 @@ chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
         id: "copy-anchor-link",
         title: "Copy Link to Section",
-        contexts: ["all"]
+        contexts: ["all"],
+        documentUrlPatterns: [
+            "https://chatgpt.com/*",
+            "https://gemini.google.com/*"
+        ]
     })
 })
 
