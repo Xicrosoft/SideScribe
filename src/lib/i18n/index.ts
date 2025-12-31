@@ -83,7 +83,11 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "settings.telemetry": "Telemetry",
     "settings.telemetry.desc": "Send anonymous usage data to help improve",
     "settings.page.title": "Settings",
-    "history.page.title": "Conversations"
+    "history.page.title": "Conversations",
+    "telemetry.prompt.title": "Help improve SideScribe",
+    "telemetry.prompt.desc": "Send anonymous usage data?",
+    "telemetry.prompt.enable": "Enable",
+    "telemetry.prompt.dismiss": "No thanks"
   },
   "zh-Hans": {
     "toc.title": "目录",
@@ -134,7 +138,11 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "settings.telemetry": "遥测数据",
     "settings.telemetry.desc": "发送匿名数据以帮助改进产品",
     "settings.page.title": "设置",
-    "history.page.title": "对话"
+    "history.page.title": "对话",
+    "telemetry.prompt.title": "帮助改进 SideScribe",
+    "telemetry.prompt.desc": "发送匿名使用数据？",
+    "telemetry.prompt.enable": "开启",
+    "telemetry.prompt.dismiss": "不了"
   },
   "zh-Hant": {
     "toc.title": "目錄",
@@ -185,7 +193,11 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "settings.telemetry": "遙測資料",
     "settings.telemetry.desc": "發送匿名資料以幫助改進產品",
     "settings.page.title": "設定",
-    "history.page.title": "對話"
+    "history.page.title": "對話",
+    "telemetry.prompt.title": "幫助改進 SideScribe",
+    "telemetry.prompt.desc": "發送匿名使用資料？",
+    "telemetry.prompt.enable": "開啟",
+    "telemetry.prompt.dismiss": "不用了"
   },
   fr: {
     "toc.title": "Table des matières",
@@ -238,7 +250,11 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "settings.telemetry": "Télémétrie",
     "settings.telemetry.desc": "Envoyer des données anonymes pour améliorer",
     "settings.page.title": "Paramètres",
-    "history.page.title": "Conversations"
+    "history.page.title": "Conversations",
+    "telemetry.prompt.title": "Améliorer SideScribe",
+    "telemetry.prompt.desc": "Envoyer des données anonymes ?",
+    "telemetry.prompt.enable": "Activer",
+    "telemetry.prompt.dismiss": "Non merci"
   },
   ru: {
     "toc.title": "Содержание",
@@ -290,7 +306,11 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "settings.telemetry": "Телеметрия",
     "settings.telemetry.desc": "Отправлять анонимные данные для улучшения",
     "settings.page.title": "Настройки",
-    "history.page.title": "Чаты"
+    "history.page.title": "Чаты",
+    "telemetry.prompt.title": "Улучшить SideScribe",
+    "telemetry.prompt.desc": "Отправлять анонимные данные?",
+    "telemetry.prompt.enable": "Да",
+    "telemetry.prompt.dismiss": "Нет"
   },
   ja: {
     "toc.title": "目次",
@@ -343,7 +363,11 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "settings.telemetry": "テレメトリー",
     "settings.telemetry.desc": "改善のため匿名データを送信",
     "settings.page.title": "設定",
-    "history.page.title": "会話"
+    "history.page.title": "会話",
+    "telemetry.prompt.title": "SideScribeの改善に協力",
+    "telemetry.prompt.desc": "匿名データを送信しますか？",
+    "telemetry.prompt.enable": "有効化",
+    "telemetry.prompt.dismiss": "いいえ"
   },
   ko: {
     "toc.title": "목차",
@@ -395,7 +419,11 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "settings.telemetry": "원격 측정",
     "settings.telemetry.desc": "개선을 위해 익명 데이터 전송",
     "settings.page.title": "설정",
-    "history.page.title": "대화"
+    "history.page.title": "대화",
+    "telemetry.prompt.title": "SideScribe 개선 도움",
+    "telemetry.prompt.desc": "익명 데이터를 보내시겠습니까?",
+    "telemetry.prompt.enable": "활성화",
+    "telemetry.prompt.dismiss": "아니요"
   }
 }
 

@@ -7,7 +7,7 @@
 
   import TOCItem from "./components/TOCItem.svelte"
   import { t } from "./lib/i18n"
-  import { getCachedConversation } from "./lib/storage"
+  import { getCachedConversation, storage, STORAGE_KEYS } from "./lib/storage"
   import { activeNodeId, expandedTurnStore, tocStore } from "./lib/store"
   import {
     detectHost,
@@ -50,6 +50,7 @@
   let currentTabId: number | undefined
   let currentTabUrl: string = ""
   let isFromCache = false // Indicates if current TOC is from cache
+  let showTelemetryPrompt = false // First-time telemetry opt-in
 
   // Check if current site is supported
   $: isSupportedSite =
@@ -239,6 +240,13 @@
 
     // Listen for URL changes in current tab
     chrome.tabs.onUpdated.addListener(handleTabUpdated)
+
+    // Check if we should show telemetry prompt (first-time users)
+    storage.get(STORAGE_KEYS.TELEMETRY_ASKED).then((asked) => {
+      if (!asked) {
+        showTelemetryPrompt = true
+      }
+    })
   })
 
   onDestroy(() => {
@@ -300,6 +308,19 @@
     setTimeout(() => {
       isRefreshing = false
     }, 1000)
+  }
+
+  async function handleTelemetryEnable() {
+    await storage.set(STORAGE_KEYS.TELEMETRY_ENABLED, true)
+    await storage.set(STORAGE_KEYS.TELEMETRY_ASKED, true)
+    showTelemetryPrompt = false
+    // Reinitialize Sentry now that it's enabled
+    initSentry("sidepanel")
+  }
+
+  async function handleTelemetryDismiss() {
+    await storage.set(STORAGE_KEYS.TELEMETRY_ASKED, true)
+    showTelemetryPrompt = false
   }
 </script>
 
@@ -471,6 +492,39 @@
       </div>
     {/if}
   </main>
+
+  <!-- First-time Telemetry Prompt -->
+  {#if showTelemetryPrompt}
+    <div
+      class="telemetry-prompt flex-none p-3 mx-2 mb-2 rounded-xl"
+      style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border};">
+      <div class="flex items-start gap-3">
+        <span class="text-lg">📊</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium mb-0.5">
+            {$t("telemetry.prompt.title")}
+          </p>
+          <p class="text-xs" style="color: {tokens.textSecondary};">
+            {$t("telemetry.prompt.desc")}
+          </p>
+          <div class="flex gap-2 mt-2">
+            <button
+              on:click={handleTelemetryEnable}
+              class="px-3 py-1 text-xs font-medium rounded-lg transition-colors"
+              style="background: #10a37f; color: white;">
+              {$t("telemetry.prompt.enable")}
+            </button>
+            <button
+              on:click={handleTelemetryDismiss}
+              class="px-3 py-1 text-xs rounded-lg transition-colors"
+              style="color: {tokens.textSecondary};">
+              {$t("telemetry.prompt.dismiss")}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {/if}
 
   <!-- Footer -->
   <footer
