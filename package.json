@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "description": "AI Chat Table of Contents",
   "author": "Noah",
+  "license": "MIT",
   "packageManager": "pnpm@10.12.1",
   "scripts": {
     "dev": "plasmo dev",
