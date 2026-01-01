@@ -90,7 +90,15 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "telemetry.prompt.title": "Help improve SideScribe",
     "telemetry.prompt.desc": "Send anonymous usage data?",
     "telemetry.prompt.enable": "Enable",
-    "telemetry.prompt.dismiss": "No thanks"
+    "telemetry.prompt.dismiss": "No thanks",
+    "settings.update": "Updates",
+    "settings.update.desc": "Check for newer versions",
+    "settings.update.check": "Check Now",
+    "settings.update.checking": "Checking...",
+    "settings.update.uptodate": "Up to date",
+    "settings.update.available": "New version: {version}",
+    "settings.update.download": "Download",
+    "settings.update.auto": "Auto-check"
   },
   "zh-Hans": {
     "toc.title": "目录",
@@ -148,7 +156,15 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "telemetry.prompt.title": "帮助改进 SideScribe",
     "telemetry.prompt.desc": "发送匿名使用数据？",
     "telemetry.prompt.enable": "开启",
-    "telemetry.prompt.dismiss": "不了"
+    "telemetry.prompt.dismiss": "不了",
+    "settings.update": "更新",
+    "settings.update.desc": "检查新版本",
+    "settings.update.check": "检查更新",
+    "settings.update.checking": "检查中...",
+    "settings.update.uptodate": "已是最新版本",
+    "settings.update.available": "新版本: {version}",
+    "settings.update.download": "下载更新",
+    "settings.update.auto": "自动检查更新"
   },
   "zh-Hant": {
     "toc.title": "目錄",
@@ -206,7 +222,15 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "telemetry.prompt.title": "幫助改進 SideScribe",
     "telemetry.prompt.desc": "發送匿名使用資料？",
     "telemetry.prompt.enable": "開啟",
-    "telemetry.prompt.dismiss": "不用了"
+    "telemetry.prompt.dismiss": "不用了",
+    "settings.update": "更新",
+    "settings.update.desc": "檢查新版本",
+    "settings.update.check": "檢查更新",
+    "settings.update.checking": "檢查中...",
+    "settings.update.uptodate": "已是最新版本",
+    "settings.update.available": "新版本: {version}",
+    "settings.update.download": "下載更新",
+    "settings.update.auto": "自動檢查更新"
   },
   fr: {
     "toc.title": "Table des matières",
@@ -266,7 +290,15 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "telemetry.prompt.title": "Améliorer SideScribe",
     "telemetry.prompt.desc": "Envoyer des données anonymes ?",
     "telemetry.prompt.enable": "Activer",
-    "telemetry.prompt.dismiss": "Non merci"
+    "telemetry.prompt.dismiss": "Non merci",
+    "settings.update": "Mises à jour",
+    "settings.update.desc": "Vérifier les nouvelles versions",
+    "settings.update.check": "Vérifier",
+    "settings.update.checking": "Vérification...",
+    "settings.update.uptodate": "À jour",
+    "settings.update.available": "Nouvelle version : {version}",
+    "settings.update.download": "Télécharger",
+    "settings.update.auto": "Vérification auto"
   },
   ru: {
     "toc.title": "Содержание",
@@ -325,7 +357,15 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "telemetry.prompt.title": "Улучшить SideScribe",
     "telemetry.prompt.desc": "Отправлять анонимные данные?",
     "telemetry.prompt.enable": "Да",
-    "telemetry.prompt.dismiss": "Нет"
+    "telemetry.prompt.dismiss": "Нет",
+    "settings.update": "Обновления",
+    "settings.update.desc": "Проверить наличие обновлений",
+    "settings.update.check": "Проверить",
+    "settings.update.checking": "Проверка...",
+    "settings.update.uptodate": "Установлена последняя версия",
+    "settings.update.available": "Новая версия: {version}",
+    "settings.update.download": "Скачать",
+    "settings.update.auto": "Автопроверка"
   },
   ja: {
     "toc.title": "目次",
@@ -385,7 +425,15 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "telemetry.prompt.title": "SideScribeの改善に協力",
     "telemetry.prompt.desc": "匿名データを送信しますか？",
     "telemetry.prompt.enable": "有効化",
-    "telemetry.prompt.dismiss": "いいえ"
+    "telemetry.prompt.dismiss": "いいえ",
+    "settings.update": "アップデート",
+    "settings.update.desc": "新しいバージョンを確認",
+    "settings.update.check": "確認する",
+    "settings.update.checking": "確認中...",
+    "settings.update.uptodate": "最新です",
+    "settings.update.available": "新しいバージョン: {version}",
+    "settings.update.download": "ダウンロード",
+    "settings.update.auto": "自動確認"
   },
   ko: {
     "toc.title": "목차",
@@ -444,7 +492,15 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "telemetry.prompt.title": "SideScribe 개선 도움",
     "telemetry.prompt.desc": "익명 데이터를 보내시겠습니까?",
     "telemetry.prompt.enable": "활성화",
-    "telemetry.prompt.dismiss": "아니요"
+    "telemetry.prompt.dismiss": "아니요",
+    "settings.update": "업데이트",
+    "settings.update.desc": "새 버전 확인",
+    "settings.update.check": "확인",
+    "settings.update.checking": "확인 중...",
+    "settings.update.uptodate": "최신 버전입니다",
+    "settings.update.available": "새 버전: {version}",
+    "settings.update.download": "다운로드",
+    "settings.update.auto": "자동 확인"
   }
 }
 
