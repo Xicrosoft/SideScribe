@@ -45,9 +45,9 @@ jobs:
 
       - name: Generate CRX file
         run: |
-          npm install -g crx
+          npm install -g crx3
           echo "${{ secrets.CRX_PRIVATE_KEY }}" > key.pem
-          crx pack build/chrome-mv3-prod -o build/sidescribe-${{ github.ref_name }}.crx -p key.pem
+          crx3 build/chrome-mv3-prod -p key.pem -o build/sidescribe-${{ github.ref_name }}.crx
           rm key.pem
 
       - name: Create GitHub Release (Draft)
