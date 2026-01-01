@@ -657,19 +657,51 @@
                 style="left: {autoCheckUpdates ? '22px' : '2px'};">
               </div>
             </button>
-            <div class="w-px h-6 mx-1" style="background: {tokens.border};">
-            </div>
-            <button
-              on:click={togglePrerelease}
-              class="toggle-switch"
-              style="background: {checkPrerelease ? '#0285ff' : '#676767'};"
-              title={$t("settings.update.prerelease")}>
-              <div
-                class="toggle-knob"
-                style="left: {checkPrerelease ? '22px' : '2px'};">
-              </div>
-            </button>
           </div>
+        </div>
+      </div>
+
+      <!-- Advanced Update Settings Card -->
+      <div
+        class="settings-card p-4 rounded-2xl transition-all duration-200 animate-slideUp"
+        style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border}; animation-delay: 0.25s;">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div
+              class="icon-box"
+              style="background: {isDark
+                ? 'rgba(168,85,247,0.15)'
+                : 'rgba(168,85,247,0.1)'};  color: #a855f7;">
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-sm font-medium">
+                {$t("settings.update.prerelease")}
+              </div>
+              <div class="text-xs" style="color: {tokens.textSecondary};">
+                {$t("settings.update.prerelease.desc")}
+              </div>
+            </div>
+          </div>
+          <button
+            on:click={togglePrerelease}
+            class="toggle-switch"
+            style="background: {checkPrerelease ? '#0285ff' : '#676767'};">
+            <div
+              class="toggle-knob"
+              style="left: {checkPrerelease ? '22px' : '2px'};">
+            </div>
+          </button>
         </div>
       </div>
 

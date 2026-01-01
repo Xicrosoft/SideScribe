@@ -44,7 +44,7 @@
     "vitest": "^4.0.16"
   },
   "manifest": {
-    "version_name": "0.1.1 beta",
+    "version_name": "0.1.1-beta",
     "host_permissions": [
       "https://*/*"
     ],
