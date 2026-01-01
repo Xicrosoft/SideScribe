@@ -6,6 +6,7 @@
   import { onDestroy, onMount } from "svelte"
 
   import TOCItem from "./components/TOCItem.svelte"
+  import UpdateModal from "./components/UpdateModal.svelte"
   import { t } from "./lib/i18n"
   import { getCachedConversation, storage, STORAGE_KEYS } from "./lib/storage"
   import { activeNodeId, expandedTurnStore, tocStore } from "./lib/store"
@@ -16,6 +17,7 @@
     type ThemeMode
   } from "./lib/theme-tokens"
   import type { ConversationSource, MessagePayload, TOCNode } from "./lib/types"
+  import { checkForUpdatesWithCooldown, type UpdateInfo } from "./lib/updater"
 
   initSentry("sidepanel")
 
@@ -51,6 +53,8 @@
   let currentTabUrl: string = ""
   let isFromCache = false // Indicates if current TOC is from cache
   let showTelemetryPrompt = false // First-time telemetry opt-in
+  let showUpdateModal = false
+  let updateInfo: UpdateInfo | null = null
 
   // Get version from manifest (synced with package.json)
   const version =
@@ -252,6 +256,26 @@
         showTelemetryPrompt = true
       }
     })
+
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName === "sync" && changes[STORAGE_KEYS.TELEMETRY_ENABLED]) {
+        if (changes[STORAGE_KEYS.TELEMETRY_ENABLED].newValue === true) {
+          initSentry("sidepanel")
+        }
+      }
+    })
+
+    // Check for updates with cooldown
+    checkForUpdatesWithCooldown(version)
+      .then((info) => {
+        if (info.hasUpdate) {
+          updateInfo = info
+          showUpdateModal = true
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to check for updates:", error)
+      })
   })
 
   onDestroy(() => {
@@ -326,6 +350,10 @@
   async function handleTelemetryDismiss() {
     await storage.set(STORAGE_KEYS.TELEMETRY_ASKED, true)
     showTelemetryPrompt = false
+  }
+
+  function dismissUpdateModal() {
+    showUpdateModal = false
   }
 </script>
 
@@ -533,39 +561,20 @@
 
   <!-- Footer -->
   <footer
-    class="flex-none p-2 text-xs text-center"
+    class="flex-none p-2 text-xs flex items-center justify-center"
     style="border-top: 1px solid {tokens.border}; color: {tokens.textSecondary};">
-    SideScribe v{version}
+    <span>v{version}</span>
   </footer>
 </div>
 
-<style>
-  :global(.overflow-y-auto::-webkit-scrollbar) {
-    width: 6px;
-  }
-  :global(.overflow-y-auto::-webkit-scrollbar-track) {
-    background: transparent;
-  }
-  :global(.overflow-y-auto::-webkit-scrollbar-thumb) {
-    background-color: rgba(128, 128, 128, 0.3);
-    border-radius: 3px;
-  }
-  .search-input {
-    border: 1px solid var(--border-color);
-    outline: none;
-  }
-  .search-input:focus {
-    border-color: var(--focus-border-color);
-  }
-  .animate-spin {
-    animation: spin 1s linear infinite;
-  }
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
-</style>
+<!-- Update Modal -->
+{#if updateInfo}
+  <UpdateModal
+    show={showUpdateModal}
+    currentVersion={version}
+    latestVersion={updateInfo.latestVersion}
+    releaseNotes={updateInfo.releaseNotes || ""}
+    downloadUrl={updateInfo.downloadUrl}
+    onDismiss={dismissUpdateModal}
+    theme={effectiveTheme} />
+{/if}

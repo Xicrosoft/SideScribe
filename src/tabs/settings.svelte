@@ -1,5 +1,11 @@
 <script lang="ts">
+  import UpdateModal from "../components/UpdateModal.svelte"
   import { initSentry } from "../lib/sentry"
+  import {
+    checkForUpdates,
+    checkForUpdatesWithCooldown,
+    type UpdateInfo
+  } from "../lib/updater"
 
   import "../style.css"
 
@@ -48,6 +54,15 @@
   let cachedCount = 0
   let langDropdownOpen = false
 
+  // Update State
+  let autoCheckUpdates = true
+  let isCheckingUpdate = false
+  let updateStatus: "idle" | "checking" | "available" | "uptodate" = "idle"
+  let newVersion = ""
+  let downloadUrl = ""
+  let releaseNotes = ""
+  let showUpdateModal = false
+
   // Get version from manifest (synced with package.json)
   const version =
     chrome.runtime.getManifest().version_name ||
@@ -58,25 +73,55 @@
 
   languageStore.subscribe((val) => (currentLang = val))
 
-  onMount(async () => {
-    // Load TOC cache setting
-    const savedTocCache = await storage.get(STORAGE_KEYS.TOC_CACHE_ENABLED)
-    if (typeof savedTocCache === "boolean") {
-      tocCacheEnabled = savedTocCache
+  onMount(() => {
+    // Async initialization
+    const init = async () => {
+      // Load TOC cache setting
+      const savedTocCache = await storage.get(STORAGE_KEYS.TOC_CACHE_ENABLED)
+      if (typeof savedTocCache === "boolean") {
+        tocCacheEnabled = savedTocCache
+      }
+
+      // Load telemetry setting
+      const savedTelemetry = await storage.get(STORAGE_KEYS.TELEMETRY_ENABLED)
+      if (typeof savedTelemetry === "boolean") {
+        telemetryEnabled = savedTelemetry
+      }
+
+      // Load auto-check setting
+      const savedAutoCheck = await storage.get(STORAGE_KEYS.AUTO_CHECK_UPDATES)
+      if (typeof savedAutoCheck === "boolean") {
+        autoCheckUpdates = savedAutoCheck
+      }
+
+      if (autoCheckUpdates) {
+        try {
+          // Use cooldown check and show modal if update available
+          const info = await checkForUpdatesWithCooldown(version)
+          if (info.hasUpdate) {
+            updateStatus = "available"
+            newVersion = info.latestVersion
+            downloadUrl = info.downloadUrl
+            releaseNotes = info.releaseNotes || ""
+            showUpdateModal = true
+          } else {
+            updateStatus = "uptodate"
+          }
+        } catch (error) {
+          console.error("Failed to check for updates:", error)
+        }
+      }
+
+      // Get cached conversation count
+      const cached = await getAllCachedConversations()
+      cachedCount = Object.keys(cached).length
+
+      // Mark as loaded
+      isLoaded = true
     }
-
-    // Load telemetry setting
-    const savedTelemetry = await storage.get(STORAGE_KEYS.TELEMETRY_ENABLED)
-    if (typeof savedTelemetry === "boolean") {
-      telemetryEnabled = savedTelemetry
-    }
-
-    // Get cached conversation count
-    const cached = await getAllCachedConversations()
-    cachedCount = Object.keys(cached).length
-
-    // Mark as loaded
-    isLoaded = true
+    init().catch((error) => {
+      console.error("Failed to initialize settings tab:", error)
+    })
 
     // Close dropdown on outside click
     const handleClickOutside = (e: MouseEvent) => {
@@ -107,13 +152,73 @@
     langDropdownOpen = false
   }
 
-  function toggleTelemetry() {
+  async function toggleTelemetry() {
     telemetryEnabled = !telemetryEnabled
-    storage.set(STORAGE_KEYS.TELEMETRY_ENABLED, telemetryEnabled)
+    await storage.set(STORAGE_KEYS.TELEMETRY_ENABLED, telemetryEnabled)
+    if (telemetryEnabled) {
+      try {
+        await initSentry("tab")
+      } catch (error) {
+        console.error("Failed to initialize telemetry:", error)
+        // Revert on failure
+        telemetryEnabled = false
+        await storage.set(STORAGE_KEYS.TELEMETRY_ENABLED, false)
+      }
+    } else {
+      // Ensure storage is saved before reload
+      await new Promise((resolve) => setTimeout(resolve, 100))
+      window.location.reload()
+    }
   }
 
   function openCacheManager() {
     chrome.tabs.create({ url: chrome.runtime.getURL("tabs/history.html") })
+  }
+
+  function openBugReport() {
+    if (!telemetryEnabled) {
+      if (confirm($t("telemetry.prompt.enable") + "?")) {
+        toggleTelemetry()
+      }
+    } else {
+      alert(
+        "Please click the 'Report a Bug' button in the bottom-right corner of the page."
+      )
+    }
+  }
+
+  function openFeatureRequest() {
+    window.open("https://github.com/Xicrosoft/SideScribe/issues", "_blank")
+  }
+
+  async function performUpdateCheck() {
+    if (isCheckingUpdate) return
+    isCheckingUpdate = true
+    updateStatus = "checking"
+    const info = await checkForUpdates(version)
+    if (info.hasUpdate) {
+      updateStatus = "available"
+      newVersion = info.latestVersion
+      downloadUrl = info.downloadUrl
+      releaseNotes = info.releaseNotes || ""
+      showUpdateModal = true
+    } else {
+      updateStatus = "uptodate"
+    }
+    isCheckingUpdate = false
+  }
+
+  function dismissUpdateModal() {
+    showUpdateModal = false
+  }
+
+  function toggleAutoCheck() {
+    autoCheckUpdates = !autoCheckUpdates
+    storage.set(STORAGE_KEYS.AUTO_CHECK_UPDATES, autoCheckUpdates)
+  }
+
+  function handleDownload() {
+    if (downloadUrl) window.open(downloadUrl, "_blank")
   }
 
   // Languages for dropdown - Auto and English at top, others below divider
@@ -423,7 +528,6 @@
         </div>
       </div>
 
-      <!-- Clear Cache Card (at bottom to prevent accidental clicks) -->
       <div
         class="settings-card p-4 rounded-2xl transition-all duration-200 animate-slideUp"
         style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border}; animation-delay: 0.25s;">
@@ -471,6 +575,130 @@
           </button>
         </div>
       </div>
+
+      <!-- Updates Card -->
+      <div
+        class="settings-card p-4 rounded-2xl transition-all duration-200 animate-slideUp"
+        style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border}; animation-delay: 0.27s;">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div
+              class="icon-box"
+              style="background: {isDark
+                ? 'rgba(59,130,246,0.15)'
+                : 'rgba(59,130,246,0.1)'}; color: #3b82f6;">
+              <svg
+                class="w-4 h-4 {isCheckingUpdate ? 'animate-spin' : ''}"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </div>
+            <div>
+              <div class="font-medium text-sm">{$t("settings.update")}</div>
+              <div class="text-xs" style="color: {tokens.textSecondary};">
+                {#if updateStatus === "checking"}
+                  {$t("settings.update.checking")}
+                {:else if updateStatus === "available"}
+                  {$t("settings.update.available", { version: newVersion })}
+                {:else if updateStatus === "uptodate"}
+                  {$t("settings.update.uptodate")}
+                {:else}
+                  {$t("settings.update.desc")}
+                {/if}
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            {#if updateStatus === "available"}
+              <button
+                on:click={handleDownload}
+                class="px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200"
+                style="background: #3b82f6; color: white;">
+                {$t("settings.update.download")}
+              </button>
+            {:else}
+              <button
+                on:click={performUpdateCheck}
+                class="px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200"
+                style="background: {isDark
+                  ? 'rgba(59,130,246,0.15)'
+                  : 'rgba(59,130,246,0.1)'}; color: #3b82f6;"
+                disabled={isCheckingUpdate}>
+                {$t("settings.update.check")}
+              </button>
+            {/if}
+            <div class="w-px h-6 mx-1" style="background: {tokens.border};">
+            </div>
+            <button
+              on:click={toggleAutoCheck}
+              class="toggle-switch"
+              style="background: {autoCheckUpdates ? '#0285ff' : '#676767'};"
+              title={$t("settings.update.auto")}>
+              <div
+                class="toggle-knob"
+                style="left: {autoCheckUpdates ? '22px' : '2px'};">
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Support Card -->
+      <div
+        class="settings-card p-4 rounded-2xl transition-all duration-200 animate-slideUp"
+        style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border}; animation-delay: 0.30s;">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div
+              class="icon-box"
+              style="background: {isDark
+                ? 'rgba(236,72,153,0.15)'
+                : 'rgba(236,72,153,0.1)'}; color: #ec4899;">
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <div class="font-medium text-sm">{$t("settings.support")}</div>
+              <div class="text-xs" style="color: {tokens.textSecondary};">
+                {$t("settings.support.desc")}
+              </div>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button
+              on:click={openFeatureRequest}
+              class="px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200"
+              style="background: {isDark
+                ? 'rgba(236,72,153,0.15)'
+                : 'rgba(236,72,153,0.1)'}; color: #ec4899;">
+              {$t("settings.support.feature")}
+            </button>
+            <button
+              on:click={openBugReport}
+              class="px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200"
+              style="background: {isDark
+                ? 'rgba(236,72,153,0.15)'
+                : 'rgba(236,72,153,0.1)'}; color: #ec4899;">
+              {$t("settings.support.report")}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Footer -->
@@ -483,6 +711,16 @@
     </footer>
   </div>
 </div>
+
+<!-- Update Modal -->
+<UpdateModal
+  show={showUpdateModal}
+  currentVersion={version}
+  latestVersion={newVersion}
+  {releaseNotes}
+  {downloadUrl}
+  onDismiss={dismissUpdateModal}
+  theme={effectiveTheme} />
 
 <style>
   .settings-card {
