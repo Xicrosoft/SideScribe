@@ -126,7 +126,7 @@ export async function checkForUpdates(
  * Parse version string into components
  * @example "v0.1.1-beta" -> { major: 0, minor: 1, patch: 1, prerelease: "beta" }
  */
-function parseVersion(v: string): { major: number; minor: number; patch: number; prerelease: string | null } {
+export function parseVersion(v: string): { major: number; minor: number; patch: number; prerelease: string | null } {
     const cleaned = v.replace(/^v/, "")
     const [base, prerelease] = cleaned.split("-")
     const [major, minor, patch] = base.split(".").map(Number)
@@ -144,7 +144,7 @@ function parseVersion(v: string): { major: number; minor: number; patch: number;
  * @example "0.1.1-beta" < "0.1.1" < "0.1.2-alpha"
  * @returns 1 if v1 > v2, -1 if v1 < v2, 0 if equal
  */
-function compareVersions(v1: string, v2: string): number {
+export function compareVersions(v1: string, v2: string): number {
     const a = parseVersion(v1)
     const b = parseVersion(v2)
 
@@ -159,6 +159,51 @@ function compareVersions(v1: string, v2: string): number {
     if (a.prerelease !== null && b.prerelease === null) return -1
     if (a.prerelease === null && b.prerelease === null) return 0
 
-    // Both have pre-release, compare alphabetically
-    return a.prerelease!.localeCompare(b.prerelease!)
+    // Both have pre-release, compare according to SemVer rules
+    return comparePrerelease(a.prerelease!, b.prerelease!)
+}
+
+/**
+ * Compare two SemVer pre-release identifiers according to SemVer 2.0.0 rules.
+ * See https://semver.org/#spec-item-11
+ */
+function comparePrerelease(aId: string, bId: string): number {
+    if (aId === bId) return 0
+
+    const aParts = aId.split(".")
+    const bParts = bId.split(".")
+    const maxLen = Math.max(aParts.length, bParts.length)
+
+    const isNumeric = (s: string): boolean => /^\d+$/.test(s)
+
+    for (let i = 0; i < maxLen; i++) {
+        const aPart = aParts[i]
+        const bPart = bParts[i]
+
+        // A smaller set of pre-release fields has lower precedence than a larger set,
+        // if all preceding identifiers are equal.
+        if (aPart === undefined) return -1
+        if (bPart === undefined) return 1
+
+        const aIsNum = isNumeric(aPart)
+        const bIsNum = isNumeric(bPart)
+
+        if (aIsNum && bIsNum) {
+            const aNum = parseInt(aPart, 10)
+            const bNum = parseInt(bPart, 10)
+            if (aNum !== bNum) return aNum > bNum ? 1 : -1
+            continue
+        }
+
+        // Numeric identifiers always have lower precedence than non-numeric identifiers.
+        if (aIsNum !== bIsNum) {
+            return aIsNum ? -1 : 1
+        }
+
+        if (aPart !== bPart) {
+            return aPart > bPart ? 1 : -1
+        }
+    }
+
+    return 0
 }
