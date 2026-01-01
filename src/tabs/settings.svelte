@@ -56,6 +56,7 @@
 
   // Update State
   let autoCheckUpdates = true
+  let checkPrerelease = false
   let isCheckingUpdate = false
   let updateStatus: "idle" | "checking" | "available" | "uptodate" = "idle"
   let newVersion = ""
@@ -92,6 +93,12 @@
       const savedAutoCheck = await storage.get(STORAGE_KEYS.AUTO_CHECK_UPDATES)
       if (typeof savedAutoCheck === "boolean") {
         autoCheckUpdates = savedAutoCheck
+      }
+
+      // Load prerelease setting
+      const savedPrerelease = await storage.get(STORAGE_KEYS.CHECK_PRERELEASE)
+      if (typeof savedPrerelease === "boolean") {
+        checkPrerelease = savedPrerelease
       }
 
       if (autoCheckUpdates) {
@@ -195,7 +202,7 @@
     if (isCheckingUpdate) return
     isCheckingUpdate = true
     updateStatus = "checking"
-    const info = await checkForUpdates(version)
+    const info = await checkForUpdates(version, checkPrerelease)
     if (info.hasUpdate) {
       updateStatus = "available"
       newVersion = info.latestVersion
@@ -215,6 +222,11 @@
   function toggleAutoCheck() {
     autoCheckUpdates = !autoCheckUpdates
     storage.set(STORAGE_KEYS.AUTO_CHECK_UPDATES, autoCheckUpdates)
+  }
+
+  function togglePrerelease() {
+    checkPrerelease = !checkPrerelease
+    storage.set(STORAGE_KEYS.CHECK_PRERELEASE, checkPrerelease)
   }
 
   function handleDownload() {
@@ -643,6 +655,18 @@
               <div
                 class="toggle-knob"
                 style="left: {autoCheckUpdates ? '22px' : '2px'};">
+              </div>
+            </button>
+            <div class="w-px h-6 mx-1" style="background: {tokens.border};">
+            </div>
+            <button
+              on:click={togglePrerelease}
+              class="toggle-switch"
+              style="background: {checkPrerelease ? '#0285ff' : '#676767'};"
+              title={$t("settings.update.prerelease")}>
+              <div
+                class="toggle-knob"
+                style="left: {checkPrerelease ? '22px' : '2px'};">
               </div>
             </button>
           </div>

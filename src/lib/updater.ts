@@ -1,4 +1,4 @@
-import { storage } from "./storage"
+import { storage, STORAGE_KEYS } from "./storage"
 
 export interface UpdateInfo {
     hasUpdate: boolean
@@ -27,8 +27,11 @@ export async function checkForUpdatesWithCooldown(currentVersion: string): Promi
         }
     }
 
+    // Get prerelease preference from storage (default: false)
+    const checkPrerelease = (await storage.get(STORAGE_KEYS.CHECK_PRERELEASE)) as boolean ?? false
+
     // Cooldown expired or no cache, perform fresh check
-    const info = await checkForUpdates(currentVersion)
+    const info = await checkForUpdates(currentVersion, checkPrerelease)
 
     // Cache the result
     await storage.set(LAST_CHECK_TIME_KEY, now)
@@ -40,10 +43,15 @@ export async function checkForUpdatesWithCooldown(currentVersion: string): Promi
 /**
  * Force check for updates (bypasses cooldown).
  * Used for manual "Check Now" button.
+ * @param includePrereleases - Whether to include pre-release versions
  */
-export async function checkForUpdates(currentVersion: string): Promise<UpdateInfo> {
+export async function checkForUpdates(
+    currentVersion: string,
+    includePrereleases: boolean = false
+): Promise<UpdateInfo> {
     try {
-        const response = await fetch("https://api.github.com/repos/Xicrosoft/SideScribe/releases/latest")
+        // Use /releases instead of /releases/latest to support prereleases
+        const response = await fetch("https://api.github.com/repos/Xicrosoft/SideScribe/releases")
 
         // Handle 404 (no releases yet) gracefully
         if (response.status === 404) {
@@ -64,7 +72,24 @@ export async function checkForUpdates(currentVersion: string): Promise<UpdateInf
             }
         }
 
-        const data = await response.json()
+        const releases = await response.json()
+
+        // Filter releases based on prerelease setting
+        const validReleases = releases.filter((release: any) =>
+            !release.draft && (includePrereleases || !release.prerelease)
+        )
+
+        if (validReleases.length === 0) {
+            console.log("No valid releases found")
+            return {
+                hasUpdate: false,
+                latestVersion: currentVersion,
+                downloadUrl: ""
+            }
+        }
+
+        // Get the first (latest) valid release
+        const data = validReleases[0]
         const latestTag = data.tag_name // e.g., "v0.1.0-beta" or "v1.0.0"
 
         // Simple version comparison

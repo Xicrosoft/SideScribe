@@ -15,6 +15,7 @@ export const STORAGE_KEYS = {
   TELEMETRY_ENABLED: "telemetry_enabled", // boolean, default false
   TELEMETRY_ASKED: "telemetry_asked", // boolean, true after first-time prompt
   AUTO_CHECK_UPDATES: "autoCheckUpdates", // boolean, default true
+  CHECK_PRERELEASE: "checkPrerelease", // boolean, default false
   CACHED_CONVERSATIONS: "cached_conversations" // Record<id, CachedConversation>
 }
 
