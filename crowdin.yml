@@ -3,5 +3,5 @@ api_token_env: CROWDIN_PERSONAL_TOKEN
 preserve_hierarchy: 1
 commit_message: "i18n: update %language% translations [skip ci]"
 files:
-  - source: /src/lib/i18n/locales/en.json
+  - source: /src/lib/i18n/locales/en-US.json
     translation: /src/lib/i18n/locales/%locale%.json
