@@ -649,7 +649,7 @@
               style="background: {isDark
                 ? 'rgba(236,72,153,0.15)'
                 : 'rgba(236,72,153,0.1)'}; color: #ec4899;">
-              Feature
+              {$t("settings.support.feature")}
             </button>
             <button
               on:click={openBugReport}
