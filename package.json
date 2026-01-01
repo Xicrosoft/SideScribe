@@ -12,6 +12,7 @@
     "build:ci": "plasmo build",
     "package": "plasmo package",
     "test": "vitest run",
+    "test:ci": "vitest run --reporter=junit --outputFile=test-report.junit.xml",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
