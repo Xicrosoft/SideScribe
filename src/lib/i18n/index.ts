@@ -2,14 +2,14 @@ import { derived, writable } from "svelte/store"
 
 import { storage } from "../storage"
 
-// Import locale files
-import en from "./locales/en.json"
-import zhHans from "./locales/zh-Hans.json"
-import zhHant from "./locales/zh-Hant.json"
-import fr from "./locales/fr.json"
-import ru from "./locales/ru.json"
-import ja from "./locales/ja.json"
-import ko from "./locales/ko.json"
+// Import locale files (using standard locale codes for Crowdin)
+import enUS from "./locales/en-US.json"
+import zhCN from "./locales/zh-CN.json"
+import zhTW from "./locales/zh-TW.json"
+import frFR from "./locales/fr-FR.json"
+import ruRU from "./locales/ru-RU.json"
+import jaJP from "./locales/ja-JP.json"
+import koKR from "./locales/ko-KR.json"
 
 // Supported Languages
 export type Language =
@@ -40,14 +40,15 @@ export const LANGUAGE_META: Record<
 // Excluding 'auto' for dictionary lookup
 type DictionaryLanguage = Exclude<Language, "auto">
 
+// Map internal language codes to imported locale files
 const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
-  en,
-  "zh-Hans": zhHans,
-  "zh-Hant": zhHant,
-  fr,
-  ru,
-  ja,
-  ko
+  en: enUS,
+  "zh-Hans": zhCN,
+  "zh-Hant": zhTW,
+  fr: frFR,
+  ru: ruRU,
+  ja: jaJP,
+  ko: koKR
 }
 
 // Get effective language (resolve 'auto' to actual language)
