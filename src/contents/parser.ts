@@ -34,15 +34,16 @@ function getConversationInfo(): {
   source: ConversationSource
 } {
   const url = window.location.href
+  const hostname = window.location.hostname
 
   // ChatGPT: /c/{id}
-  if (url.includes("chatgpt.com")) {
+  if (hostname === "chatgpt.com" || hostname.endsWith(".chatgpt.com")) {
     const match = url.match(/\/c\/([a-f0-9-]+)/i)
     return { id: match ? match[1] : null, source: "chatgpt" }
   }
 
   // Gemini: /app/{id}
-  if (url.includes("gemini.google.com")) {
+  if (hostname === "gemini.google.com" || hostname.endsWith(".gemini.google.com")) {
     const match = url.match(/\/app\/([a-f0-9]+)/i)
     return { id: match ? match[1] : null, source: "gemini" }
   }
@@ -131,7 +132,7 @@ function sendTitleUpdate() {
 
   // For ChatGPT: Use the active conversation item in sidebar, or the document title
   // Avoid using h1 as it may match AI response headings
-  if (!title && window.location.href.includes("chatgpt.com")) {
+  if (!title && window.location.hostname === "chatgpt.com") {
     // Try: Active sidebar conversation title (has specific aria/state attributes)
     const activeConv = document
       .querySelector('[data-testid="conversation-turn-list"]')
