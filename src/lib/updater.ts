@@ -44,9 +44,26 @@ export async function checkForUpdatesWithCooldown(currentVersion: string): Promi
 export async function checkForUpdates(currentVersion: string): Promise<UpdateInfo> {
     try {
         const response = await fetch("https://api.github.com/repos/Xicrosoft/SideScribe/releases/latest")
-        if (!response.ok) {
-            throw new Error("Failed to fetch latest release")
+
+        // Handle 404 (no releases yet) gracefully
+        if (response.status === 404) {
+            console.log("No releases found yet")
+            return {
+                hasUpdate: false,
+                latestVersion: currentVersion,
+                downloadUrl: ""
+            }
         }
+
+        if (!response.ok) {
+            console.warn(`GitHub API returned ${response.status}`)
+            return {
+                hasUpdate: false,
+                latestVersion: currentVersion,
+                downloadUrl: ""
+            }
+        }
+
         const data = await response.json()
         const latestTag = data.tag_name // e.g., "v0.1.0-beta" or "v1.0.0"
 
@@ -74,7 +91,8 @@ export async function checkForUpdates(currentVersion: string): Promise<UpdateInf
             releaseNotes: data.body
         }
     } catch (error) {
-        console.error("Update check failed:", error)
+        // Network error or other issue - fail silently
+        console.warn("Update check failed:", error)
         return {
             hasUpdate: false,
             latestVersion: currentVersion,
