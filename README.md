@@ -1,6 +1,17 @@
-# SideScribe - AI Chat Table of Contents
+<div align="center">
+  <img src=".github/assets/logo.svg" alt="Logo" width="100">
+</div>
+
+<h1 align="center">SideScribe</h1>
+
+<p align="center">AI Chat Table of Contents</p>
 
 **SideScribe** is a Chrome Extension that generates a dynamic Table of Contents (TOC) for AI chat interfaces like Google Gemini and ChatGPT. It uses the Chrome Side Panel API to provide seamless navigation through long conversations without cluttering the main interface.
+
+<div align="center">
+  <img src=".github/assets/ChatGPT_demo.png" alt="ChatGPT Demo" width="45%">
+  <img src=".github/assets/Gemini_demo.png" alt="Gemini Demo" width="45%">
+</div>
 
 ## Features
 
