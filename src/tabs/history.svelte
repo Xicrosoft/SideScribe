@@ -148,30 +148,6 @@
 </script>
 
 <svelte:head>
-  <script>
-    ;(function () {
-      let theme = "light"
-      try {
-        const cached = localStorage.getItem("side_scribe_theme_cache")
-        if (cached === "dark" || cached === "light") {
-          theme = cached
-        } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-          theme = "dark"
-        }
-      } catch (e) {
-        if (window.matchMedia("(prefers-color-scheme: dark)").matches)
-          theme = "dark"
-      }
-
-      if (theme === "dark") {
-        document.documentElement.style.setProperty("--bg-color", "#212121")
-        document.documentElement.style.background = "#212121"
-      } else {
-        document.documentElement.style.setProperty("--bg-color", "#ffffff")
-        document.documentElement.style.background = "#ffffff"
-      }
-    })()
-  </script>
   <title>{$t("history.page.title")} - SideScribe</title>
   <style>
     html,
