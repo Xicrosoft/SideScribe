@@ -57,8 +57,7 @@
   // Update State
   let autoCheckUpdates = true
   let isCheckingUpdate = false
-  let updateStatus: "idle" | "checking" | "available" | "uptodate" | "error" =
-    "idle"
+  let updateStatus: "idle" | "checking" | "available" | "uptodate" = "idle"
   let newVersion = ""
   let downloadUrl = ""
   let releaseNotes = ""
@@ -90,22 +89,26 @@
       }
 
       // Load auto-check setting
-      const savedAutoCheck = await storage.get("autoCheckUpdates")
+      const savedAutoCheck = await storage.get(STORAGE_KEYS.AUTO_CHECK_UPDATES)
       if (typeof savedAutoCheck === "boolean") {
         autoCheckUpdates = savedAutoCheck
       }
 
       if (autoCheckUpdates) {
-        // Use cooldown check and show modal if update available
-        const info = await checkForUpdatesWithCooldown(version)
-        if (info.hasUpdate) {
-          updateStatus = "available"
-          newVersion = info.latestVersion
-          downloadUrl = info.downloadUrl
-          releaseNotes = info.releaseNotes || ""
-          showUpdateModal = true
-        } else {
-          updateStatus = "uptodate"
+        try {
+          // Use cooldown check and show modal if update available
+          const info = await checkForUpdatesWithCooldown(version)
+          if (info.hasUpdate) {
+            updateStatus = "available"
+            newVersion = info.latestVersion
+            downloadUrl = info.downloadUrl
+            releaseNotes = info.releaseNotes || ""
+            showUpdateModal = true
+          } else {
+            updateStatus = "uptodate"
+          }
+        } catch (error) {
+          console.error("Failed to check for updates:", error)
         }
       }
 
@@ -116,7 +119,9 @@
       // Mark as loaded
       isLoaded = true
     }
-    init()
+    init().catch((error) => {
+      console.error("Failed to initialize settings tab:", error)
+    })
 
     // Close dropdown on outside click
     const handleClickOutside = (e: MouseEvent) => {
@@ -151,8 +156,17 @@
     telemetryEnabled = !telemetryEnabled
     await storage.set(STORAGE_KEYS.TELEMETRY_ENABLED, telemetryEnabled)
     if (telemetryEnabled) {
-      await initSentry("tab")
+      try {
+        await initSentry("tab")
+      } catch (error) {
+        console.error("Failed to initialize telemetry:", error)
+        // Revert on failure
+        telemetryEnabled = false
+        await storage.set(STORAGE_KEYS.TELEMETRY_ENABLED, false)
+      }
     } else {
+      // Ensure storage is saved before reload
+      await new Promise((resolve) => setTimeout(resolve, 100))
       window.location.reload()
     }
   }
@@ -200,7 +214,7 @@
 
   function toggleAutoCheck() {
     autoCheckUpdates = !autoCheckUpdates
-    storage.set("autoCheckUpdates", autoCheckUpdates)
+    storage.set(STORAGE_KEYS.AUTO_CHECK_UPDATES, autoCheckUpdates)
   }
 
   function handleDownload() {

@@ -100,9 +100,24 @@
     { value: "gemini", key: "history.filter.gemini" }
   ] as const
 
-  onMount(async () => {
-    await loadConversations()
-    isLoaded = true
+  onMount(() => {
+    const init = async () => {
+      await loadConversations()
+      isLoaded = true
+
+      // Check for updates with cooldown
+      try {
+        const info = await checkForUpdatesWithCooldown(version)
+        if (info.hasUpdate) {
+          updateInfo = info
+          showUpdateModal = true
+        }
+      } catch (error) {
+        console.error("Failed to check for updates:", error)
+      }
+    }
+
+    init()
 
     // Close dropdowns on outside click
     const handleClick = (e: MouseEvent) => {
@@ -111,13 +126,6 @@
       if (!target.closest(".filter-dropdown")) filterDropdownOpen = false
     }
     document.addEventListener("click", handleClick)
-
-    // Check for updates with cooldown
-    const info = await checkForUpdatesWithCooldown(version)
-    if (info.hasUpdate) {
-      updateInfo = info
-      showUpdateModal = true
-    }
 
     return () => document.removeEventListener("click", handleClick)
   })

@@ -266,12 +266,16 @@
     })
 
     // Check for updates with cooldown
-    checkForUpdatesWithCooldown(version).then((info) => {
-      if (info.hasUpdate) {
-        updateInfo = info
-        showUpdateModal = true
-      }
-    })
+    checkForUpdatesWithCooldown(version)
+      .then((info) => {
+        if (info.hasUpdate) {
+          updateInfo = info
+          showUpdateModal = true
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to check for updates:", error)
+      })
   })
 
   onDestroy(() => {
