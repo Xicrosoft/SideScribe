@@ -1,6 +1,6 @@
 <script lang="ts">
   import UpdateModal from "../components/UpdateModal.svelte"
-  import { initSentry, Sentry } from "../lib/sentry"
+  import { initSentry } from "../lib/sentry"
   import {
     checkForUpdates,
     checkForUpdatesWithCooldown,
