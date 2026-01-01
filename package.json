@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@plasmohq/storage": "^1.15.0",
-    "@sentry/cli": "^2",
+    "@sentry/cli": "^3",
     "@sentry/browser": "^10.32.1",
     "plasmo": "0.90.5",
     "svelte": "4.2.9",
