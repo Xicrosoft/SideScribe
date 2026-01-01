@@ -69,5 +69,8 @@
     "update.modal.latest": "Latest",
     "update.modal.notes": "Release Notes",
     "update.modal.download": "Download",
-    "update.modal.dismiss": "Later"
+    "update.modal.dismiss": "Later",
+    "settings.translate": "Help Translate",
+    "settings.translate.desc": "Help us translate SideScribe into your language or request a new language",
+    "settings.translate.button": "Contribute"
 }
