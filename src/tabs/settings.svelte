@@ -48,6 +48,11 @@
   let cachedCount = 0
   let langDropdownOpen = false
 
+  // Get version from manifest (synced with package.json)
+  const version =
+    chrome.runtime.getManifest().version_name ||
+    chrome.runtime.getManifest().version
+
   $: tokens = THEME_TOKENS.generic[effectiveTheme]
   $: isDark = effectiveTheme === "dark"
 
@@ -156,7 +161,9 @@
           <h1 class="text-xl font-semibold tracking-tight">
             {$t("settings.title")}
           </h1>
-          <p class="text-xs" style="color: {tokens.textSecondary};">v0.0.1</p>
+          <p class="text-xs" style="color: {tokens.textSecondary};">
+            v{version}
+          </p>
         </div>
       </div>
     </header>
