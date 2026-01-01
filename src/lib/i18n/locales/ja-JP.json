@@ -71,8 +71,6 @@
     "update.modal.download": "ダウンロード",
     "update.modal.dismiss": "後で",
     "settings.translate": "Help Translate",
-    "settings.translate.desc": "Help us translate SideScribe into your language",
-    "settings.translate.start": "Start Translating",
-    "settings.translate.active": "Translation Mode Active",
-    "settings.translate.stop": "Exit"
+    "settings.translate.desc": "Help us translate SideScribe into your language or request a new language",
+    "settings.translate.button": "Contribute"
 }
