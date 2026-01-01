@@ -258,7 +258,7 @@
     })
 
     chrome.storage.onChanged.addListener((changes, areaName) => {
-      if (areaName === "local" && changes[STORAGE_KEYS.TELEMETRY_ENABLED]) {
+      if (areaName === "sync" && changes[STORAGE_KEYS.TELEMETRY_ENABLED]) {
         if (changes[STORAGE_KEYS.TELEMETRY_ENABLED].newValue === true) {
           initSentry("sidepanel")
         }
