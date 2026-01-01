@@ -1,4 +1,5 @@
 <script lang="ts">
+  import CrowdinJIPT from "../components/CrowdinJIPT.svelte"
   import Toast from "../components/Toast.svelte"
   import UpdateModal from "../components/UpdateModal.svelte"
   import { initSentry } from "../lib/sentry"
@@ -15,6 +16,7 @@
   import logo from "../../assets/icon.svg"
   import {
     effectiveLanguage,
+    isTranslationMode,
     LANGUAGE_META,
     languageStore,
     t,
@@ -70,6 +72,9 @@
   let toastMessage = ""
   let toastType: "info" | "success" | "error" = "info"
   let showToast = false
+
+  // Translation mode state
+  let isInTranslationMode = false
 
   // Get version from manifest (synced with package.json)
   const version =
@@ -250,6 +255,19 @@
     if (downloadUrl) window.open(downloadUrl, "_blank")
   }
 
+  function toggleTranslationMode() {
+    if (isInTranslationMode) {
+      // Exit translation mode
+      languageStore.set("auto")
+    } else {
+      // Enter translation mode (set to ach-UG pseudo-language)
+      languageStore.set("ach-UG" as any)
+    }
+  }
+
+  // Subscribe to translation mode changes
+  $: isInTranslationMode = $isTranslationMode
+
   // Languages for dropdown - Auto and English at top, others below divider
   const topLanguages: Language[] = ["auto", "en"]
   const otherLanguages: Language[] = [
@@ -280,6 +298,8 @@
     }
   </style>
 </svelte:head>
+
+<CrowdinJIPT />
 
 <div
   class="min-h-screen transition-all duration-300"
@@ -770,6 +790,51 @@
               {$t("settings.support.report")}
             </button>
           </div>
+        </div>
+      </div>
+
+      <!-- Help Translate Card -->
+      <div
+        class="settings-card p-4 rounded-2xl transition-all duration-200 animate-slideUp"
+        style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border}; animation-delay: 0.35s;">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div
+              class="icon-box"
+              style="background: {isDark
+                ? 'rgba(34,197,94,0.15)'
+                : 'rgba(34,197,94,0.1)'}; color: #22c55e;">
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+              </svg>
+            </div>
+            <div>
+              <div class="font-medium text-sm">{$t("settings.translate")}</div>
+              <div class="text-xs" style="color: {tokens.textSecondary};">
+                {isInTranslationMode
+                  ? $t("settings.translate.active")
+                  : $t("settings.translate.desc")}
+              </div>
+            </div>
+          </div>
+          <button
+            on:click={toggleTranslationMode}
+            class="px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200"
+            style="background: {isDark
+              ? 'rgba(34,197,94,0.15)'
+              : 'rgba(34,197,94,0.1)'}; color: #22c55e;">
+            {isInTranslationMode
+              ? $t("settings.translate.stop")
+              : $t("settings.translate.start")}
+          </button>
         </div>
       </div>
     </div>
