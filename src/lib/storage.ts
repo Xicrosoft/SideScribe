@@ -14,8 +14,7 @@ export const STORAGE_KEYS = {
   TOC_CACHE_ENABLED: "toc_cache_enabled",
   TELEMETRY_ENABLED: "telemetry_enabled", // boolean, default false
   TELEMETRY_ASKED: "telemetry_asked", // boolean, true after first-time prompt
-  CACHED_CONVERSATIONS: "cached_conversations", // Record<id, CachedConversation>
-  UPDATE_STATE: "update_state" // { lastChecked: number, hasUpdate: boolean, ... }
+  CACHED_CONVERSATIONS: "cached_conversations" // Record<id, CachedConversation>
 }
 
 // Helpers for Set serialization

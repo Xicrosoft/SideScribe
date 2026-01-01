@@ -5,6 +5,7 @@
 
   import { onMount } from "svelte"
 
+  import UpdateModal from "../components/UpdateModal.svelte"
   import { effectiveLanguage, t } from "../lib/i18n"
   import {
     clearAllCachedConversations,
@@ -17,6 +18,7 @@
     ConversationSource,
     TOCNode
   } from "../lib/types"
+  import { checkForUpdatesWithCooldown, type UpdateInfo } from "../lib/updater"
 
   initSentry("tab")
 
@@ -48,6 +50,13 @@
   // Dropdown states
   let sortDropdownOpen = false
   let filterDropdownOpen = false
+  let showUpdateModal = false
+  let updateInfo: UpdateInfo | null = null
+
+  // Get version from manifest
+  const version =
+    chrome.runtime.getManifest().version_name ||
+    chrome.runtime.getManifest().version
 
   $: tokens = THEME_TOKENS.generic[effectiveTheme]
   $: isDark = effectiveTheme === "dark"
@@ -102,6 +111,14 @@
       if (!target.closest(".filter-dropdown")) filterDropdownOpen = false
     }
     document.addEventListener("click", handleClick)
+
+    // Check for updates with cooldown
+    const info = await checkForUpdatesWithCooldown(version)
+    if (info.hasUpdate) {
+      updateInfo = info
+      showUpdateModal = true
+    }
+
     return () => document.removeEventListener("click", handleClick)
   })
 
@@ -144,6 +161,10 @@
 
   function getSourceIcon(source: ConversationSource) {
     return source === "chatgpt" ? "🤖" : "✨"
+  }
+
+  function dismissUpdateModal() {
+    showUpdateModal = false
   }
 </script>
 
@@ -506,6 +527,18 @@
     {/if}
   </main>
 </div>
+
+<!-- Update Modal -->
+{#if updateInfo}
+  <UpdateModal
+    show={showUpdateModal}
+    currentVersion={version}
+    latestVersion={updateInfo.latestVersion}
+    releaseNotes={updateInfo.releaseNotes || ""}
+    downloadUrl={updateInfo.downloadUrl}
+    onDismiss={dismissUpdateModal}
+    theme={effectiveTheme} />
+{/if}
 
 <style>
   :global(.overflow-y-auto::-webkit-scrollbar) {

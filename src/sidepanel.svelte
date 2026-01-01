@@ -6,6 +6,7 @@
   import { onDestroy, onMount } from "svelte"
 
   import TOCItem from "./components/TOCItem.svelte"
+  import UpdateModal from "./components/UpdateModal.svelte"
   import { t } from "./lib/i18n"
   import { getCachedConversation, storage, STORAGE_KEYS } from "./lib/storage"
   import { activeNodeId, expandedTurnStore, tocStore } from "./lib/store"
@@ -16,7 +17,7 @@
     type ThemeMode
   } from "./lib/theme-tokens"
   import type { ConversationSource, MessagePayload, TOCNode } from "./lib/types"
-  import { tryAutoCheck, type UpdateState } from "./lib/updater"
+  import { checkForUpdatesWithCooldown, type UpdateInfo } from "./lib/updater"
 
   initSentry("sidepanel")
 
@@ -52,10 +53,8 @@
   let currentTabUrl: string = ""
   let isFromCache = false // Indicates if current TOC is from cache
   let showTelemetryPrompt = false // First-time telemetry opt-in
-  
-  // Update State
-  let updateState: UpdateState | null = null
-  let showUpdateBanner = false
+  let showUpdateModal = false
+  let updateInfo: UpdateInfo | null = null
 
   // Get version from manifest (synced with package.json)
   const version =
@@ -258,35 +257,22 @@
       }
     })
 
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName === "local" && changes[STORAGE_KEYS.TELEMETRY_ENABLED]) {
+        if (changes[STORAGE_KEYS.TELEMETRY_ENABLED].newValue === true) {
+          initSentry("sidepanel")
+        }
       }
     })
 
-    // Auto Update Check (throttled 1 hour)
-    storage.get("autoCheckUpdates").then((enabled) => {
-        // Default to true if not set
-        if (enabled !== false) {
-             checkUpdates()
-        }
+    // Check for updates with cooldown
+    checkForUpdatesWithCooldown(version).then((info) => {
+      if (info.hasUpdate) {
+        updateInfo = info
+        showUpdateModal = true
+      }
     })
   })
-
-  async function checkUpdates() {
-     const state = await tryAutoCheck(version)
-     if (state && state.hasUpdate) {
-        updateState = state
-        showUpdateBanner = true
-     }
-  }
-
-  function dismissUpdate() {
-      showUpdateBanner = false
-  }
-
-  function downloadUpdate() {
-      if (updateState?.downloadUrl) {
-          window.open(updateState.downloadUrl, "_blank")
-      }
-  }
 
   onDestroy(() => {
     chrome.tabs.onActivated.removeListener(handleTabActivated)
@@ -360,6 +346,10 @@
   async function handleTelemetryDismiss() {
     await storage.set(STORAGE_KEYS.TELEMETRY_ASKED, true)
     showTelemetryPrompt = false
+  }
+
+  function dismissUpdateModal() {
+    showUpdateModal = false
   }
 </script>
 
@@ -565,45 +555,6 @@
     </div>
   {/if}
 
-  <!-- Update Banner -->
-  {#if showUpdateBanner && updateState}
-    <div
-      class="update-banner flex-none p-3 mx-2 mb-2 rounded-xl animate-fadeIn"
-      style="background: {tokens.bgSecondary}; border: 1px solid {tokens.accent};">
-      <div class="flex items-start gap-3">
-        <div class="text-xl">🚀</div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium mb-1" style="color: {tokens.accent};">
-            {$t("settings.update.available", {
-              version: updateState.latestVersion
-            })}
-          </p>
-          {#if updateState.releaseNotes}
-            <div
-              class="text-xs mb-2 max-h-20 overflow-y-auto whitespace-pre-wrap"
-              style="color: {tokens.textSecondary}; font-family: monospace;">
-              {updateState.releaseNotes}
-            </div>
-          {/if}
-          <div class="flex gap-2">
-            <button
-              on:click={downloadUpdate}
-              class="px-3 py-1 text-xs font-medium rounded-lg transition-colors"
-              style="background: {tokens.accent}; color: white;">
-              {$t("settings.update.download")}
-            </button>
-            <button
-              on:click={dismissUpdate}
-              class="px-3 py-1 text-xs rounded-lg transition-colors"
-              style="color: {tokens.textSecondary};">
-              {$t("telemetry.prompt.dismiss")}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  {/if}
-
   <!-- Footer -->
   <footer
     class="flex-none p-2 text-xs flex items-center justify-center"
@@ -611,3 +562,15 @@
     <span>v{version}</span>
   </footer>
 </div>
+
+<!-- Update Modal -->
+{#if updateInfo}
+  <UpdateModal
+    show={showUpdateModal}
+    currentVersion={version}
+    latestVersion={updateInfo.latestVersion}
+    releaseNotes={updateInfo.releaseNotes || ""}
+    downloadUrl={updateInfo.downloadUrl}
+    onDismiss={dismissUpdateModal}
+    theme={effectiveTheme} />
+{/if}

@@ -1,6 +1,11 @@
 <script lang="ts">
+  import UpdateModal from "../components/UpdateModal.svelte"
   import { initSentry, Sentry } from "../lib/sentry"
-  import { checkForUpdates } from "../lib/updater"
+  import {
+    checkForUpdates,
+    checkForUpdatesWithCooldown,
+    type UpdateInfo
+  } from "../lib/updater"
 
   import "../style.css"
 
@@ -56,6 +61,8 @@
     "idle"
   let newVersion = ""
   let downloadUrl = ""
+  let releaseNotes = ""
+  let showUpdateModal = false
 
   // Get version from manifest (synced with package.json)
   const version =
@@ -89,7 +96,17 @@
       }
 
       if (autoCheckUpdates) {
-        performUpdateCheck()
+        // Use cooldown check and show modal if update available
+        const info = await checkForUpdatesWithCooldown(version)
+        if (info.hasUpdate) {
+          updateStatus = "available"
+          newVersion = info.latestVersion
+          downloadUrl = info.downloadUrl
+          releaseNotes = info.releaseNotes || ""
+          showUpdateModal = true
+        } else {
+          updateStatus = "uptodate"
+        }
       }
 
       // Get cached conversation count
@@ -169,10 +186,16 @@
       updateStatus = "available"
       newVersion = info.latestVersion
       downloadUrl = info.downloadUrl
+      releaseNotes = info.releaseNotes || ""
+      showUpdateModal = true
     } else {
       updateStatus = "uptodate"
     }
     isCheckingUpdate = false
+  }
+
+  function dismissUpdateModal() {
+    showUpdateModal = false
   }
 
   function toggleAutoCheck() {
@@ -674,6 +697,16 @@
     </footer>
   </div>
 </div>
+
+<!-- Update Modal -->
+<UpdateModal
+  show={showUpdateModal}
+  currentVersion={version}
+  latestVersion={newVersion}
+  {releaseNotes}
+  {downloadUrl}
+  onDismiss={dismissUpdateModal}
+  theme={effectiveTheme} />
 
 <style>
   .settings-card {

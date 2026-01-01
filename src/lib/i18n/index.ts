@@ -95,7 +95,13 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "settings.update.uptodate": "Up to date",
     "settings.update.available": "New version: {version}",
     "settings.update.download": "Download",
-    "settings.update.auto": "Auto-check"
+    "settings.update.auto": "Auto-check",
+    "update.modal.title": "New Version Available",
+    "update.modal.current": "Current",
+    "update.modal.latest": "Latest",
+    "update.modal.notes": "Release Notes",
+    "update.modal.download": "Download",
+    "update.modal.dismiss": "Later"
   },
   "zh-Hans": {
     "toc.title": "目录",
@@ -158,7 +164,13 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "settings.update.uptodate": "已是最新版本",
     "settings.update.available": "新版本: {version}",
     "settings.update.download": "下载更新",
-    "settings.update.auto": "自动检查更新"
+    "settings.update.auto": "自动检查更新",
+    "update.modal.title": "新版本可用",
+    "update.modal.current": "当前版本",
+    "update.modal.latest": "最新版本",
+    "update.modal.notes": "更新日志",
+    "update.modal.download": "下载",
+    "update.modal.dismiss": "稍后"
   },
   "zh-Hant": {
     "toc.title": "目錄",
@@ -221,7 +233,13 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "settings.update.uptodate": "已是最新版本",
     "settings.update.available": "新版本: {version}",
     "settings.update.download": "下載更新",
-    "settings.update.auto": "自動檢查更新"
+    "settings.update.auto": "自動檢查更新",
+    "update.modal.title": "新版本可用",
+    "update.modal.current": "當前版本",
+    "update.modal.latest": "最新版本",
+    "update.modal.notes": "更新日誌",
+    "update.modal.download": "下載",
+    "update.modal.dismiss": "稍後"
   },
   fr: {
     "toc.title": "Table des matières",
@@ -286,7 +304,13 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "settings.update.uptodate": "À jour",
     "settings.update.available": "Nouvelle version : {version}",
     "settings.update.download": "Télécharger",
-    "settings.update.auto": "Vérification auto"
+    "settings.update.auto": "Vérification auto",
+    "update.modal.title": "Nouvelle version disponible",
+    "update.modal.current": "Actuelle",
+    "update.modal.latest": "Dernière",
+    "update.modal.notes": "Notes de version",
+    "update.modal.download": "Télécharger",
+    "update.modal.dismiss": "Plus tard"
   },
   ru: {
     "toc.title": "Содержание",
@@ -350,7 +374,13 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "settings.update.uptodate": "Установлена последняя версия",
     "settings.update.available": "Новая версия: {version}",
     "settings.update.download": "Скачать",
-    "settings.update.auto": "Автопроверка"
+    "settings.update.auto": "Автопроверка",
+    "update.modal.title": "Доступна новая версия",
+    "update.modal.current": "Текущая",
+    "update.modal.latest": "Последняя",
+    "update.modal.notes": "Примечания к выпуску",
+    "update.modal.download": "Скачать",
+    "update.modal.dismiss": "Позже"
   },
   ja: {
     "toc.title": "目次",
@@ -415,7 +445,13 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "settings.update.uptodate": "最新です",
     "settings.update.available": "新しいバージョン: {version}",
     "settings.update.download": "ダウンロード",
-    "settings.update.auto": "自動確認"
+    "settings.update.auto": "自動確認",
+    "update.modal.title": "新しいバージョンが利用可能です",
+    "update.modal.current": "現在",
+    "update.modal.latest": "最新",
+    "update.modal.notes": "リリースノート",
+    "update.modal.download": "ダウンロード",
+    "update.modal.dismiss": "後で"
   },
   ko: {
     "toc.title": "목차",
@@ -479,7 +515,13 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
     "settings.update.uptodate": "최신 버전입니다",
     "settings.update.available": "새 버전: {version}",
     "settings.update.download": "다운로드",
-    "settings.update.auto": "자동 확인"
+    "settings.update.auto": "자동 확인",
+    "update.modal.title": "새 버전 사용 가능",
+    "update.modal.current": "현재",
+    "update.modal.latest": "최신",
+    "update.modal.notes": "릴리스 노트",
+    "update.modal.download": "다운로드",
+    "update.modal.dismiss": "나중에"
   }
 }
 
