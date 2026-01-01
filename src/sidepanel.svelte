@@ -252,6 +252,14 @@
         showTelemetryPrompt = true
       }
     })
+
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName === "local" && changes[STORAGE_KEYS.TELEMETRY_ENABLED]) {
+        if (changes[STORAGE_KEYS.TELEMETRY_ENABLED].newValue === true) {
+          initSentry("sidepanel")
+        }
+      }
+    })
   })
 
   onDestroy(() => {
@@ -533,39 +541,8 @@
 
   <!-- Footer -->
   <footer
-    class="flex-none p-2 text-xs text-center"
+    class="flex-none p-2 text-xs flex items-center justify-center"
     style="border-top: 1px solid {tokens.border}; color: {tokens.textSecondary};">
-    SideScribe v{version}
+    <span>v{version}</span>
   </footer>
 </div>
-
-<style>
-  :global(.overflow-y-auto::-webkit-scrollbar) {
-    width: 6px;
-  }
-  :global(.overflow-y-auto::-webkit-scrollbar-track) {
-    background: transparent;
-  }
-  :global(.overflow-y-auto::-webkit-scrollbar-thumb) {
-    background-color: rgba(128, 128, 128, 0.3);
-    border-radius: 3px;
-  }
-  .search-input {
-    border: 1px solid var(--border-color);
-    outline: none;
-  }
-  .search-input:focus {
-    border-color: var(--focus-border-color);
-  }
-  .animate-spin {
-    animation: spin 1s linear infinite;
-  }
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
-</style>

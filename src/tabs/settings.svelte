@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { initSentry } from "../lib/sentry"
+  import { initSentry, Sentry } from "../lib/sentry"
 
   import "../style.css"
 
@@ -107,13 +107,34 @@
     langDropdownOpen = false
   }
 
-  function toggleTelemetry() {
+  async function toggleTelemetry() {
     telemetryEnabled = !telemetryEnabled
-    storage.set(STORAGE_KEYS.TELEMETRY_ENABLED, telemetryEnabled)
+    await storage.set(STORAGE_KEYS.TELEMETRY_ENABLED, telemetryEnabled)
+    if (telemetryEnabled) {
+      await initSentry("tab")
+    } else {
+      window.location.reload()
+    }
   }
 
   function openCacheManager() {
     chrome.tabs.create({ url: chrome.runtime.getURL("tabs/history.html") })
+  }
+
+  function openBugReport() {
+    if (!telemetryEnabled) {
+      if (confirm($t("telemetry.prompt.enable") + "?")) {
+        toggleTelemetry()
+      }
+    } else {
+      alert(
+        "Please click the 'Report a Bug' button in the bottom-right corner of the page."
+      )
+    }
+  }
+
+  function openFeatureRequest() {
+    window.open("https://github.com/Xicrosoft/SideScribe/issues", "_blank")
   }
 
   // Languages for dropdown - Auto and English at top, others below divider
@@ -423,7 +444,6 @@
         </div>
       </div>
 
-      <!-- Clear Cache Card (at bottom to prevent accidental clicks) -->
       <div
         class="settings-card p-4 rounded-2xl transition-all duration-200 animate-slideUp"
         style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border}; animation-delay: 0.25s;">
@@ -469,6 +489,57 @@
               ? $t("settings.cache.cleared")
               : $t("settings.cache.clear")}
           </button>
+        </div>
+      </div>
+
+      <!-- Support Card -->
+      <div
+        class="settings-card p-4 rounded-2xl transition-all duration-200 animate-slideUp"
+        style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border}; animation-delay: 0.30s;">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div
+              class="icon-box"
+              style="background: {isDark
+                ? 'rgba(236,72,153,0.15)'
+                : 'rgba(236,72,153,0.1)'}; color: #ec4899;">
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <div class="font-medium text-sm">{$t("settings.support")}</div>
+              <div class="text-xs" style="color: {tokens.textSecondary};">
+                {$t("settings.support.desc")}
+              </div>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button
+              on:click={openFeatureRequest}
+              class="px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200"
+              style="background: {isDark
+                ? 'rgba(236,72,153,0.15)'
+                : 'rgba(236,72,153,0.1)'}; color: #ec4899;">
+              Feature
+            </button>
+            <button
+              on:click={openBugReport}
+              class="px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200"
+              style="background: {isDark
+                ? 'rgba(236,72,153,0.15)'
+                : 'rgba(236,72,153,0.1)'}; color: #ec4899;">
+              {$t("settings.support.report")}
+            </button>
+          </div>
         </div>
       </div>
     </div>

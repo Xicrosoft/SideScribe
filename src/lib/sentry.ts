@@ -3,7 +3,7 @@ import * as Sentry from "@sentry/svelte"
 import { storage, STORAGE_KEYS } from "./storage"
 
 const SENTRY_DSN =
-    "https://ce694e52cc35622adacff7ea8df31349@o4509485702119424.ingest.us.sentry.io/4510630325059584"
+    "https://a1ec19508e60f2b8902e01d8cef57abd@o4509485702119424.ingest.us.sentry.io/4510630510657536"
 
 let initialized = false
 
@@ -23,7 +23,12 @@ export async function initSentry(
     Sentry.init({
         dsn: SENTRY_DSN,
         sendDefaultPii: false, // Anonymous by default
-        integrations: [Sentry.browserTracingIntegration()],
+        integrations: [
+            Sentry.browserTracingIntegration(),
+            Sentry.feedbackIntegration({
+                colorScheme: "system"
+            })
+        ],
         tracesSampleRate: 1.0, // 100% sampling for early development
         initialScope: {
             tags: { context }
