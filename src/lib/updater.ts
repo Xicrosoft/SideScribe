@@ -5,6 +5,43 @@ export interface UpdateInfo {
     releaseNotes?: string
 }
 
+export interface UpdateState extends UpdateInfo {
+    lastChecked: number
+}
+
+import { storage, STORAGE_KEYS } from "./storage"
+
+export async function tryAutoCheck(currentVersion: string): Promise<UpdateState | null> {
+    // 1. Load existing state
+    const rawState = await storage.get(STORAGE_KEYS.UPDATE_STATE)
+    let state: UpdateState = rawState ? (JSON.parse(rawState) as UpdateState) : {
+        hasUpdate: false,
+        latestVersion: currentVersion,
+        downloadUrl: "",
+        lastChecked: 0
+    }
+
+    const now = Date.now()
+    const ONE_HOUR = 60 * 60 * 1000
+
+    // 2. Check if we need to refresh (Cooldwon: 1 hour)
+    if (now - state.lastChecked > ONE_HOUR) {
+        // Fetch fresh data
+        const info = await checkForUpdates(currentVersion)
+
+        // Update state
+        state = {
+            ...info,
+            lastChecked: now
+        }
+
+        // Save to storage
+        await storage.set(STORAGE_KEYS.UPDATE_STATE, JSON.stringify(state))
+    }
+
+    return state
+}
+
 export async function checkForUpdates(currentVersion: string): Promise<UpdateInfo> {
     try {
         const response = await fetch("https://api.github.com/repos/Xicrosoft/SideScribe/releases/latest")
