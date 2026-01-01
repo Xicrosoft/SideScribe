@@ -53,6 +53,7 @@ jobs:
           name: Vitest Tests
           path: test-report.junit.xml
           reporter: jest-junit
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run tests with coverage
         run: pnpm test:coverage
