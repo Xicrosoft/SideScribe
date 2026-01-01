@@ -44,9 +44,11 @@ jobs:
         run: mv build/chrome-mv3-prod.zip build/sidescribe-${{ github.ref_name }}.zip
 
       - name: Generate CRX file
+        env:
+          CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
         run: |
           npm install -g crx3
-          echo "${{ secrets.CRX_PRIVATE_KEY }}" > key.pem
+          printf '%s\n' "$CRX_PRIVATE_KEY" > key.pem
           crx3 build/chrome-mv3-prod -p key.pem -o build/sidescribe-${{ github.ref_name }}.crx
           rm key.pem
 
