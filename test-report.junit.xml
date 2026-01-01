@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="47" failures="0" errors="0" time="0.026963834">
+    <testsuite name="src/tests/lib/storage.test.ts" timestamp="2026-01-01T12:43:32.524Z" hostname="Noahs-Mac-mini.local" tests="10" failures="0" errors="0" skipped="0" time="0.003499584">
+        <testcase classname="src/tests/lib/storage.test.ts" name="mergeTOC &gt; Basic Merge Operations &gt; should return fresh when cached is empty" time="0.001041875">
+        </testcase>
+        <testcase classname="src/tests/lib/storage.test.ts" name="mergeTOC &gt; Basic Merge Operations &gt; should return cached when fresh is empty" time="0.0000915">
+        </testcase>
+        <testcase classname="src/tests/lib/storage.test.ts" name="mergeTOC &gt; Basic Merge Operations &gt; should handle both empty arrays" time="0.000071417">
+        </testcase>
+        <testcase classname="src/tests/lib/storage.test.ts" name="mergeTOC &gt; Contiguous Range Merge &gt; should preserve cached turns before visible range" time="0.000300583">
+        </testcase>
+        <testcase classname="src/tests/lib/storage.test.ts" name="mergeTOC &gt; Contiguous Range Merge &gt; should preserve cached turns after visible range" time="0.000306458">
+        </testcase>
+        <testcase classname="src/tests/lib/storage.test.ts" name="mergeTOC &gt; Edit Detection &gt; should use fresh content when same ID has different content" time="0.000107959">
+        </testcase>
+        <testcase classname="src/tests/lib/storage.test.ts" name="mergeTOC &gt; Delete Detection &gt; should remove cached turns that are in visible range but not in fresh" time="0.000136708">
+        </testcase>
+        <testcase classname="src/tests/lib/storage.test.ts" name="mergeTOC &gt; Sort Order &gt; should sort merged results by turn index" time="0.000176167">
+        </testcase>
+        <testcase classname="src/tests/lib/storage.test.ts" name="mergeTOC &gt; Edge Cases &gt; should handle non-turn nodes gracefully" time="0.000183416">
+        </testcase>
+        <testcase classname="src/tests/lib/storage.test.ts" name="mergeTOC &gt; Edge Cases &gt; should handle single node arrays" time="0.00012875">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/lib/theme-tokens.test.ts" timestamp="2026-01-01T12:43:32.526Z" hostname="Noahs-Mac-mini.local" tests="11" failures="0" errors="0" skipped="0" time="0.002907875">
+        <testcase classname="src/tests/lib/theme-tokens.test.ts" name="Theme Tokens &gt; THEME_TOKENS &gt; should have complete tokens for chatgpt host" time="0.000968833">
+        </testcase>
+        <testcase classname="src/tests/lib/theme-tokens.test.ts" name="Theme Tokens &gt; THEME_TOKENS &gt; should have complete tokens for gemini host" time="0.000182291">
+        </testcase>
+        <testcase classname="src/tests/lib/theme-tokens.test.ts" name="Theme Tokens &gt; THEME_TOKENS &gt; should have complete tokens for generic host" time="0.000164958">
+        </testcase>
+        <testcase classname="src/tests/lib/theme-tokens.test.ts" name="Theme Tokens &gt; THEME_TOKENS &gt; should have valid CSS color values" time="0.000391417">
+        </testcase>
+        <testcase classname="src/tests/lib/theme-tokens.test.ts" name="Theme Tokens &gt; getTokens &gt; should return correct tokens for chatgpt light" time="0.0001115">
+        </testcase>
+        <testcase classname="src/tests/lib/theme-tokens.test.ts" name="Theme Tokens &gt; getTokens &gt; should return correct tokens for chatgpt dark" time="0.000043125">
+        </testcase>
+        <testcase classname="src/tests/lib/theme-tokens.test.ts" name="Theme Tokens &gt; getTokens &gt; should return correct tokens for gemini light" time="0.000064792">
+        </testcase>
+        <testcase classname="src/tests/lib/theme-tokens.test.ts" name="Theme Tokens &gt; getTokens &gt; should return correct tokens for gemini dark" time="0.000073792">
+        </testcase>
+        <testcase classname="src/tests/lib/theme-tokens.test.ts" name="Theme Tokens &gt; detectHost &gt; should detect chatgpt host" time="0.000154208">
+        </testcase>
+        <testcase classname="src/tests/lib/theme-tokens.test.ts" name="Theme Tokens &gt; detectHost &gt; should detect gemini host" time="0.000055042">
+        </testcase>
+        <testcase classname="src/tests/lib/theme-tokens.test.ts" name="Theme Tokens &gt; detectHost &gt; should return generic for unknown hosts" time="0.000037459">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/lib/toc-parser.test.ts" timestamp="2026-01-01T12:43:32.527Z" hostname="Noahs-Mac-mini.local" tests="11" failures="0" errors="0" skipped="0" time="0.017569917">
+        <testcase classname="src/tests/lib/toc-parser.test.ts" name="TOCParser &gt; parseTurn - Strategy 1: Explicit Headings &gt; should parse h1-h6 headings" time="0.008017958">
+        </testcase>
+        <testcase classname="src/tests/lib/toc-parser.test.ts" name="TOCParser &gt; parseTurn - Strategy 1: Explicit Headings &gt; should generate correct IDs based on turn index" time="0.000923167">
+        </testcase>
+        <testcase classname="src/tests/lib/toc-parser.test.ts" name="TOCParser &gt; parseTurn - Strategy 1: Explicit Headings &gt; should truncate long heading text" time="0.00071225">
+        </testcase>
+        <testcase classname="src/tests/lib/toc-parser.test.ts" name="TOCParser &gt; parseTurn - Strategy 1: Explicit Headings &gt; should handle empty headings" time="0.000531375">
+        </testcase>
+        <testcase classname="src/tests/lib/toc-parser.test.ts" name="TOCParser &gt; parseTurn - Strategy 2: Bold Text Heuristic &gt; should use bold text as headings when no explicit headings exist" time="0.001341167">
+        </testcase>
+        <testcase classname="src/tests/lib/toc-parser.test.ts" name="TOCParser &gt; parseTurn - Strategy 2: Bold Text Heuristic &gt; should filter out insignificant bold text" time="0.001090875">
+        </testcase>
+        <testcase classname="src/tests/lib/toc-parser.test.ts" name="TOCParser &gt; parseTurn - Strategy 3: Long Text Fallback &gt; should split long content into paragraph nodes" time="0.000988">
+        </testcase>
+        <testcase classname="src/tests/lib/toc-parser.test.ts" name="TOCParser &gt; parseTurn - Default Case &gt; should return empty array for short content without structure" time="0.000827875">
+        </testcase>
+        <testcase classname="src/tests/lib/toc-parser.test.ts" name="TOCParser &gt; buildHierarchy &gt; should build nested hierarchy from flat nodes" time="0.00115825">
+        </testcase>
+        <testcase classname="src/tests/lib/toc-parser.test.ts" name="TOCParser &gt; buildHierarchy &gt; should handle non-sequential heading levels" time="0.000506791">
+        </testcase>
+        <testcase classname="src/tests/lib/toc-parser.test.ts" name="TOCParser &gt; buildHierarchy &gt; should handle sibling headings at same level" time="0.00042225">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/lib/updater.test.ts" timestamp="2026-01-01T12:43:32.528Z" hostname="Noahs-Mac-mini.local" tests="15" failures="0" errors="0" skipped="0" time="0.002986458">
+        <testcase classname="src/tests/lib/updater.test.ts" name="compareVersions &gt; Basic Version Comparison &gt; should return 1 when first version is greater" time="0.000696167">
+        </testcase>
+        <testcase classname="src/tests/lib/updater.test.ts" name="compareVersions &gt; Basic Version Comparison &gt; should return -1 when first version is less" time="0.000220125">
+        </testcase>
+        <testcase classname="src/tests/lib/updater.test.ts" name="compareVersions &gt; Basic Version Comparison &gt; should return 0 when versions are equal" time="0.000116709">
+        </testcase>
+        <testcase classname="src/tests/lib/updater.test.ts" name="compareVersions &gt; Basic Version Comparison &gt; should handle versions with v prefix" time="0.000231875">
+        </testcase>
+        <testcase classname="src/tests/lib/updater.test.ts" name="compareVersions &gt; Pre-release Version Comparison &gt; should treat stable version as greater than pre-release" time="0.000080625">
+        </testcase>
+        <testcase classname="src/tests/lib/updater.test.ts" name="compareVersions &gt; Pre-release Version Comparison &gt; should treat pre-release as less than stable" time="0.000048292">
+        </testcase>
+        <testcase classname="src/tests/lib/updater.test.ts" name="compareVersions &gt; Pre-release Version Comparison &gt; should compare pre-release identifiers alphabetically" time="0.000162708">
+        </testcase>
+        <testcase classname="src/tests/lib/updater.test.ts" name="compareVersions &gt; Pre-release Version Comparison &gt; should compare numeric pre-release identifiers" time="0.000061125">
+        </testcase>
+        <testcase classname="src/tests/lib/updater.test.ts" name="compareVersions &gt; Pre-release Version Comparison &gt; should prefer numeric over alphanumeric (SemVer spec)" time="0.000153583">
+        </testcase>
+        <testcase classname="src/tests/lib/updater.test.ts" name="compareVersions &gt; Pre-release Version Comparison &gt; should handle equal pre-releases" time="0.000054875">
+        </testcase>
+        <testcase classname="src/tests/lib/updater.test.ts" name="compareVersions &gt; Pre-release Version Comparison &gt; should handle complex pre-release identifiers" time="0.000089833">
+        </testcase>
+        <testcase classname="src/tests/lib/updater.test.ts" name="compareVersions &gt; Real-world Scenarios &gt; should correctly compare SideScribe version progression" time="0.000057416">
+        </testcase>
+        <testcase classname="src/tests/lib/updater.test.ts" name="compareVersions &gt; Real-world Scenarios &gt; should handle version with v prefix in tag format" time="0.000030375">
+        </testcase>
+        <testcase classname="src/tests/lib/updater.test.ts" name="compareVersions &gt; Edge Cases &gt; should handle missing patch version" time="0.000030042">
+        </testcase>
+        <testcase classname="src/tests/lib/updater.test.ts" name="compareVersions &gt; Edge Cases &gt; should handle versions with different segment lengths" time="0.000029417">
+        </testcase>
+    </testsuite>
+</testsuites>

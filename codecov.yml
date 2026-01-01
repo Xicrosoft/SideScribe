@@ -1,0 +1,38 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 5%
+    patch:
+      default:
+        target: auto
+        threshold: 5%
+
+ignore:
+  # Browser extension entry points (depend on chrome API)
+  - "src/background/*.ts"
+  - "src/contents/**"
+  - "src/sidepanel.svelte"
+  - "src/tabs/**"
+  
+  # Components with heavy browser dependencies
+  - "src/components/**"
+  
+  # Modules requiring browser APIs
+  - "src/lib/sentry.ts"           # Sentry SDK
+  - "src/lib/scroll-spy.ts"       # IntersectionObserver
+  - "src/lib/theme-manager.ts"    # chrome.storage
+  - "src/lib/store.ts"            # Svelte stores + chrome.storage
+  
+  # Adapters (require DOM and chrome APIs)
+  - "src/adapters/chatgpt.ts"
+  - "src/adapters/gemini.ts"
+  - "src/adapters/registry.ts"
+  
+  # i18n (requires Svelte stores + chrome.storage)
+  - "src/lib/i18n/**"
+
+comment:
+  require_changes: true
+  layout: "reach,diff,flags,files"
