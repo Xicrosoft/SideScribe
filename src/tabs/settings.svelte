@@ -48,6 +48,11 @@
   let cachedCount = 0
   let langDropdownOpen = false
 
+  // Get version from manifest (synced with package.json)
+  const version =
+    chrome.runtime.getManifest().version_name ||
+    chrome.runtime.getManifest().version
+
   $: tokens = THEME_TOKENS.generic[effectiveTheme]
   $: isDark = effectiveTheme === "dark"
 
@@ -124,31 +129,6 @@
 </script>
 
 <svelte:head>
-  <script>
-    // Inline script to prevent theme flash - runs before render
-    ;(function () {
-      let theme = "light"
-      try {
-        const cached = localStorage.getItem("side_scribe_theme_cache")
-        if (cached === "dark" || cached === "light") {
-          theme = cached
-        } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-          theme = "dark"
-        }
-      } catch (e) {
-        if (window.matchMedia("(prefers-color-scheme: dark)").matches)
-          theme = "dark"
-      }
-
-      if (theme === "dark") {
-        document.documentElement.style.setProperty("--bg-color", "#212121")
-        document.documentElement.style.background = "#212121"
-      } else {
-        document.documentElement.style.setProperty("--bg-color", "#ffffff")
-        document.documentElement.style.background = "#ffffff"
-      }
-    })()
-  </script>
   <title>{$t("settings.page.title")} - SideScribe</title>
   <style>
     html,
@@ -181,7 +161,9 @@
           <h1 class="text-xl font-semibold tracking-tight">
             {$t("settings.title")}
           </h1>
-          <p class="text-xs" style="color: {tokens.textSecondary};">v0.0.1</p>
+          <p class="text-xs" style="color: {tokens.textSecondary};">
+            v{version}
+          </p>
         </div>
       </div>
     </header>

@@ -52,6 +52,11 @@
   let isFromCache = false // Indicates if current TOC is from cache
   let showTelemetryPrompt = false // First-time telemetry opt-in
 
+  // Get version from manifest (synced with package.json)
+  const version =
+    chrome.runtime.getManifest().version_name ||
+    chrome.runtime.getManifest().version
+
   // Check if current site is supported
   $: isSupportedSite =
     currentTabUrl.includes("gemini.google.com") ||
@@ -530,7 +535,7 @@
   <footer
     class="flex-none p-2 text-xs text-center"
     style="border-top: 1px solid {tokens.border}; color: {tokens.textSecondary};">
-    SideScribe v0.0.1
+    SideScribe v{version}
   </footer>
 </div>
 
