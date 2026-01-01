@@ -19,12 +19,6 @@
 
 You can download the latest **`.crx`** or **`.zip`** from the [**Releases**](https://github.com/Xicrosoft/SideScribe/releases) page. 
 
-### Install from `.crx` (recommended)
-1. Download the latest `.crx` file from Releases.
-2. Open `chrome://extensions` in Chrome.
-3. Enable **Developer mode** (top right).
-4. Drag and drop the `.crx` file into the Extensions page to install.
-
 ### Install from `.zip` (unpacked)
 1. Download the `.zip` file from Releases and unzip it.
 2. Open `chrome://extensions` in Chrome.
