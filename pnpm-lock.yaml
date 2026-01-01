@@ -25,7 +25,7 @@ importers:
         version: 4.2.9
       svelte-preprocess:
         specifier: 5.1.3
-        version: 5.1.3(@babel/core@7.28.5)(less@4.5.1)(postcss-load-config@4.0.2(postcss@8.4.35))(postcss@8.4.35)(sass@1.97.1)(svelte@4.2.9)(typescript@5.3.3)
+        version: 5.1.3(@babel/core@7.28.5)(less@4.5.1)(postcss-load-config@4.0.2(postcss@8.4.35))(postcss@8.4.35)(sass@1.97.1)(svelte@4.2.9)(typescript@5.9.3)
     devDependencies:
       '@ianvs/prettier-plugin-sort-imports':
         specifier: 4.1.1
@@ -67,8 +67,8 @@ importers:
         specifier: 3.4.1
         version: 3.4.1
       typescript:
-        specifier: 5.3.3
-        version: 5.3.3
+        specifier: 5.9.3
+        version: 5.9.3
       vitest:
         specifier: ^4.0.16
         version: 4.0.16(@types/node@20.11.5)(happy-dom@20.0.11)(jiti@1.21.7)(jsdom@27.4.0)(less@4.5.1)(lightningcss@1.30.2)(sass@1.97.1)(yaml@2.8.2)
@@ -3983,13 +3983,13 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
-  typescript@5.3.3:
-    resolution: {integrity: sha512-pXWcraxM0uxAS+tN0AG/BF2TyqmHO014Z070UsJ+pFvYuRSq8KH8DmWpnbXe0pEPDHXZV3FcAbJkijJ5oNEnWw==}
+  typescript@5.8.2:
+    resolution: {integrity: sha512-aJn6wq13/afZp/jT9QZmwEjDqqvSGp1VT5GVg+f/t6/oVyrgXM6BY1h9BRh/O5p3PlUPAe+WuiEZOmb/49RqoQ==}
     engines: {node: '>=14.17'}
     hasBin: true
 
-  typescript@5.8.2:
-    resolution: {integrity: sha512-aJn6wq13/afZp/jT9QZmwEjDqqvSGp1VT5GVg+f/t6/oVyrgXM6BY1h9BRh/O5p3PlUPAe+WuiEZOmb/49RqoQ==}
+  typescript@5.9.3:
+    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -8165,7 +8165,7 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  svelte-preprocess@5.1.3(@babel/core@7.28.5)(less@4.5.1)(postcss-load-config@4.0.2(postcss@8.4.35))(postcss@8.4.35)(sass@1.97.1)(svelte@4.2.9)(typescript@5.3.3):
+  svelte-preprocess@5.1.3(@babel/core@7.28.5)(less@4.5.1)(postcss-load-config@4.0.2(postcss@8.4.35))(postcss@8.4.35)(sass@1.97.1)(svelte@4.2.9)(typescript@5.9.3):
     dependencies:
       '@types/pug': 2.0.10
       detect-indent: 6.1.0
@@ -8179,7 +8179,7 @@ snapshots:
       postcss: 8.4.35
       postcss-load-config: 4.0.2(postcss@8.4.35)
       sass: 1.97.1
-      typescript: 5.3.3
+      typescript: 5.9.3
 
   svelte@4.2.2:
     dependencies:
@@ -8357,9 +8357,9 @@ snapshots:
 
   typescript@5.2.2: {}
 
-  typescript@5.3.3: {}
-
   typescript@5.8.2: {}
+
+  typescript@5.9.3: {}
 
   undici-types@5.26.5: {}
 
