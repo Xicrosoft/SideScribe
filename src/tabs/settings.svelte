@@ -156,9 +156,9 @@
     setTimeout(() => (cacheCleared = false), 2000)
   }
 
-  function toggleTocCache() {
+  async function toggleTocCache() {
     tocCacheEnabled = !tocCacheEnabled
-    storage.set(STORAGE_KEYS.TOC_CACHE_ENABLED, tocCacheEnabled)
+    await storage.set(STORAGE_KEYS.TOC_CACHE_ENABLED, tocCacheEnabled)
   }
 
   function setLanguage(lang: Language) {
@@ -236,14 +236,14 @@
     showUpdateModal = false
   }
 
-  function toggleAutoCheck() {
+  async function toggleAutoCheck() {
     autoCheckUpdates = !autoCheckUpdates
-    storage.set(STORAGE_KEYS.AUTO_CHECK_UPDATES, autoCheckUpdates)
+    await storage.set(STORAGE_KEYS.AUTO_CHECK_UPDATES, autoCheckUpdates)
   }
 
-  function togglePrerelease() {
+  async function togglePrerelease() {
     checkPrerelease = !checkPrerelease
-    storage.set(STORAGE_KEYS.CHECK_PRERELEASE, checkPrerelease)
+    await storage.set(STORAGE_KEYS.CHECK_PRERELEASE, checkPrerelease)
   }
 
   function handleDownload() {
