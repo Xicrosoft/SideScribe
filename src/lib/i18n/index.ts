@@ -10,8 +10,6 @@ import frFR from "./locales/fr-FR.json"
 import ruRU from "./locales/ru-RU.json"
 import jaJP from "./locales/ja-JP.json"
 import koKR from "./locales/ko-KR.json"
-// Crowdin In-Context pseudo-language (not shown in UI dropdown)
-import achUG from "./locales/ach-UG.json"
 
 // Supported Languages (shown in UI)
 export type Language =
@@ -24,10 +22,7 @@ export type Language =
   | "ja"
   | "ko"
 
-// Internal language type includes pseudo-language
-type InternalLanguage = Language | "ach-UG"
-
-// Language metadata for UI display (excludes ach-UG)
+// Language metadata for UI display
 export const LANGUAGE_META: Record<
   Language,
   { native: string; english: string }
@@ -43,9 +38,9 @@ export const LANGUAGE_META: Record<
 }
 
 // Excluding 'auto' for dictionary lookup
-type DictionaryLanguage = Exclude<InternalLanguage, "auto">
+type DictionaryLanguage = Exclude<Language, "auto">
 
-// Map internal language codes to imported locale files
+// Map language codes to imported locale files
 const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
   en: enUS,
   "zh-Hans": zhCN,
@@ -53,12 +48,11 @@ const dictionaries: Record<DictionaryLanguage, Record<string, string>> = {
   fr: frFR,
   ru: ruRU,
   ja: jaJP,
-  ko: koKR,
-  "ach-UG": achUG
+  ko: koKR
 }
 
 // Get effective language (resolve 'auto' to actual language)
-function resolveLanguage(lang: InternalLanguage): DictionaryLanguage {
+function resolveLanguage(lang: Language): DictionaryLanguage {
   if (lang === "auto") {
     const browserLang = navigator.language
     if (browserLang.startsWith("zh")) {
@@ -81,21 +75,21 @@ function resolveLanguage(lang: InternalLanguage): DictionaryLanguage {
   return lang
 }
 
-// Persisted Language Store (supports internal languages including ach-UG)
+// Persisted Language Store
 function createLanguageStore() {
-  const { subscribe, set, update } = writable<InternalLanguage>("auto")
+  const { subscribe, set, update } = writable<Language>("auto")
 
   // Load from storage
   storage.get("language").then((val) => {
-    const validLangs = [...Object.keys(LANGUAGE_META), "ach-UG"]
+    const validLangs = Object.keys(LANGUAGE_META)
     if (val && validLangs.includes(val as string)) {
-      set(val as InternalLanguage)
+      set(val as Language)
     }
   })
 
   return {
     subscribe,
-    set: (lang: InternalLanguage) => {
+    set: (lang: Language) => {
       set(lang)
       storage.set("language", lang)
     }
@@ -103,12 +97,6 @@ function createLanguageStore() {
 }
 
 export const languageStore = createLanguageStore()
-
-// Check if in translation mode (ach-UG pseudo-language)
-export const isTranslationMode = derived(
-  languageStore,
-  ($lang) => $lang === "ach-UG"
-)
 
 // Derived store that resolves 'auto' to actual language
 export const effectiveLanguage = derived(languageStore, ($lang) =>

@@ -69,5 +69,8 @@
     "update.modal.latest": "최신",
     "update.modal.notes": "릴리스 노트",
     "update.modal.download": "다운로드",
-    "update.modal.dismiss": "나중에"
+    "update.modal.dismiss": "나중에",
+    "settings.translate": "번역 돕기",
+    "settings.translate.desc": "SideScribe를 귀하의 언어로 번역하거나 새 언어를 요청하여 도움을 주세요",
+    "settings.translate.button": "기여하기"
 }

@@ -69,5 +69,8 @@
     "update.modal.latest": "最新版本",
     "update.modal.notes": "更新日誌",
     "update.modal.download": "下載",
-    "update.modal.dismiss": "稍後"
+    "update.modal.dismiss": "稍後",
+    "settings.translate": "協助翻譯",
+    "settings.translate.desc": "幫助我們將 SideScribe 翻譯成您的語言，或請求添加新語言",
+    "settings.translate.button": "參與貢獻"
 }

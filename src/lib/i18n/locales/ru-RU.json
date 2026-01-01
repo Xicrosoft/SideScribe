@@ -69,5 +69,8 @@
     "update.modal.latest": "Последняя",
     "update.modal.notes": "Примечания к выпуску",
     "update.modal.download": "Скачать",
-    "update.modal.dismiss": "Позже"
+    "update.modal.dismiss": "Позже",
+    "settings.translate": "Помогите с переводом",
+    "settings.translate.desc": "Помогите нам перевести SideScribe на ваш язык или запросите добавление нового языка",
+    "settings.translate.button": "Внести вклад"
 }

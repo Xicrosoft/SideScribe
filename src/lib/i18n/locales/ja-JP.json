@@ -69,5 +69,8 @@
     "update.modal.latest": "最新",
     "update.modal.notes": "リリースノート",
     "update.modal.download": "ダウンロード",
-    "update.modal.dismiss": "後で"
+    "update.modal.dismiss": "後で",
+    "settings.translate": "翻訳を手伝う",
+    "settings.translate.desc": "SideScribeをあなたの言語に翻訳したり、新しい言語をリクエストすることで貢献してください",
+    "settings.translate.button": "貢献する"
 }

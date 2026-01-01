@@ -1,5 +1,4 @@
 <script lang="ts">
-  import CrowdinJIPT from "../components/CrowdinJIPT.svelte"
   import Toast from "../components/Toast.svelte"
   import UpdateModal from "../components/UpdateModal.svelte"
   import { initSentry } from "../lib/sentry"
@@ -16,7 +15,6 @@
   import logo from "../../assets/icon.svg"
   import {
     effectiveLanguage,
-    isTranslationMode,
     LANGUAGE_META,
     languageStore,
     t,
@@ -53,6 +51,7 @@
   let tocCacheEnabled = true
   let telemetryEnabled = false
   let cacheCleared = false
+  let clearConfirmPending = false
   let isLoaded = false
   let cachedCount = 0
   let langDropdownOpen = false
@@ -74,7 +73,6 @@
   let showToast = false
 
   // Translation mode state
-  let isInTranslationMode = false
 
   // Get version from manifest (synced with package.json)
   const version =
@@ -154,6 +152,12 @@
   })
 
   async function clearCache() {
+    if (!clearConfirmPending) {
+      clearConfirmPending = true
+      setTimeout(() => (clearConfirmPending = false), 3000)
+      return
+    }
+    clearConfirmPending = false
     await storage.remove(STORAGE_KEYS.EXPANDED_TURNS)
     await clearAllCachedConversations()
     cachedCount = 0
@@ -255,18 +259,9 @@
     if (downloadUrl) window.open(downloadUrl, "_blank")
   }
 
-  function toggleTranslationMode() {
-    if (isInTranslationMode) {
-      // Exit translation mode
-      languageStore.set("auto")
-    } else {
-      // Enter translation mode (set to ach-UG pseudo-language)
-      languageStore.set("ach-UG" as any)
-    }
+  function openCrowdinProject() {
+    window.open("https://crowdin.com/project/side-scribe", "_blank")
   }
-
-  // Subscribe to translation mode changes
-  $: isInTranslationMode = $isTranslationMode
 
   // Languages for dropdown - Auto and English at top, others below divider
   const topLanguages: Language[] = ["auto", "en"]
@@ -298,8 +293,6 @@
     }
   </style>
 </svelte:head>
-
-<CrowdinJIPT />
 
 <div
   class="min-h-screen transition-all duration-300"
@@ -613,14 +606,20 @@
             class="px-4 py-1.5 text-xs font-medium rounded-lg transition-all duration-200"
             style="background: {cacheCleared
               ? '#22c55e'
-              : isDark
-                ? 'rgba(239,68,68,0.15)'
-                : 'rgba(239,68,68,0.1)'}; color: {cacheCleared
+              : clearConfirmPending
+                ? '#f59e0b'
+                : isDark
+                  ? 'rgba(239,68,68,0.15)'
+                  : 'rgba(239,68,68,0.1)'}; color: {cacheCleared
               ? 'white'
-              : '#ef4444'};">
+              : clearConfirmPending
+                ? 'white'
+                : '#ef4444'};">
             {cacheCleared
               ? $t("settings.cache.cleared")
-              : $t("settings.cache.clear")}
+              : clearConfirmPending
+                ? $t("history.clear.confirm")
+                : $t("settings.cache.clear")}
           </button>
         </div>
       </div>
@@ -819,21 +818,17 @@
             <div>
               <div class="font-medium text-sm">{$t("settings.translate")}</div>
               <div class="text-xs" style="color: {tokens.textSecondary};">
-                {isInTranslationMode
-                  ? $t("settings.translate.active")
-                  : $t("settings.translate.desc")}
+                {$t("settings.translate.desc")}
               </div>
             </div>
           </div>
           <button
-            on:click={toggleTranslationMode}
+            on:click={openCrowdinProject}
             class="px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200"
             style="background: {isDark
               ? 'rgba(34,197,94,0.15)'
               : 'rgba(34,197,94,0.1)'}; color: #22c55e;">
-            {isInTranslationMode
-              ? $t("settings.translate.stop")
-              : $t("settings.translate.start")}
+            {$t("settings.translate.button")}
           </button>
         </div>
       </div>
