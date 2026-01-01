@@ -92,12 +92,8 @@ export async function checkForUpdates(
         const data = validReleases[0]
         const latestTag = data.tag_name // e.g., "v0.1.0-beta" or "v1.0.0"
 
-        // Simple version comparison
-        // Removes 'v' prefix and compares semantic versions
-        const latest = cleanVersion(latestTag)
-        const current = cleanVersion(currentVersion)
-
-        const hasUpdate = compareVersions(latest, current) > 0
+        // Compare versions with pre-release support
+        const hasUpdate = compareVersions(latestTag, currentVersion) > 0
 
         // Construct download URL
         let downloadUrl = ""
@@ -126,18 +122,43 @@ export async function checkForUpdates(
     }
 }
 
-function cleanVersion(v: string): string {
-    return v.replace(/^v/, "").split("-")[0]
+/**
+ * Parse version string into components
+ * @example "v0.1.1-beta" -> { major: 0, minor: 1, patch: 1, prerelease: "beta" }
+ */
+function parseVersion(v: string): { major: number; minor: number; patch: number; prerelease: string | null } {
+    const cleaned = v.replace(/^v/, "")
+    const [base, prerelease] = cleaned.split("-")
+    const [major, minor, patch] = base.split(".").map(Number)
+    return {
+        major: major || 0,
+        minor: minor || 0,
+        patch: patch || 0,
+        prerelease: prerelease || null
+    }
 }
 
+/**
+ * Compare two semver versions with pre-release support
+ * Pre-release versions are considered LOWER than stable versions
+ * @example "0.1.1-beta" < "0.1.1" < "0.1.2-alpha"
+ * @returns 1 if v1 > v2, -1 if v1 < v2, 0 if equal
+ */
 function compareVersions(v1: string, v2: string): number {
-    const pa = v1.split('.').map(Number);
-    const pb = v2.split('.').map(Number);
-    for (let i = 0; i < 3; i++) {
-        const na = pa[i] || 0;
-        const nb = pb[i] || 0;
-        if (na > nb) return 1;
-        if (nb > na) return -1;
-    }
-    return 0;
+    const a = parseVersion(v1)
+    const b = parseVersion(v2)
+
+    // Compare major.minor.patch
+    if (a.major !== b.major) return a.major > b.major ? 1 : -1
+    if (a.minor !== b.minor) return a.minor > b.minor ? 1 : -1
+    if (a.patch !== b.patch) return a.patch > b.patch ? 1 : -1
+
+    // Same base version, compare pre-release
+    // No pre-release > any pre-release (stable wins)
+    if (a.prerelease === null && b.prerelease !== null) return 1
+    if (a.prerelease !== null && b.prerelease === null) return -1
+    if (a.prerelease === null && b.prerelease === null) return 0
+
+    // Both have pre-release, compare alphabetically
+    return a.prerelease!.localeCompare(b.prerelease!)
 }

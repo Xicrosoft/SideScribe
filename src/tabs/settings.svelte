@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Toast from "../components/Toast.svelte"
   import UpdateModal from "../components/UpdateModal.svelte"
   import { initSentry } from "../lib/sentry"
   import {
@@ -58,11 +59,17 @@
   let autoCheckUpdates = true
   let checkPrerelease = false
   let isCheckingUpdate = false
-  let updateStatus: "idle" | "checking" | "available" | "uptodate" = "idle"
+  let updateStatus: "idle" | "checking" | "available" | "uptodate" | "error" =
+    "idle"
   let newVersion = ""
   let downloadUrl = ""
   let releaseNotes = ""
   let showUpdateModal = false
+
+  // Toast state
+  let toastMessage = ""
+  let toastType: "info" | "success" | "error" = "info"
+  let showToast = false
 
   // Get version from manifest (synced with package.json)
   const version =
@@ -184,13 +191,15 @@
 
   function openBugReport() {
     if (!telemetryEnabled) {
-      if (confirm($t("telemetry.prompt.enable") + "?")) {
-        toggleTelemetry()
-      }
+      toastMessage = $t("telemetry.prompt.enable") + "?"
+      toastType = "info"
+      showToast = true
+      // User needs to enable telemetry first
+      toggleTelemetry()
     } else {
-      alert(
-        "Please click the 'Report a Bug' button in the bottom-right corner of the page."
-      )
+      toastMessage = $t("settings.support.report.hint")
+      toastType = "info"
+      showToast = true
     }
   }
 
@@ -202,15 +211,23 @@
     if (isCheckingUpdate) return
     isCheckingUpdate = true
     updateStatus = "checking"
-    const info = await checkForUpdates(version, checkPrerelease)
-    if (info.hasUpdate) {
-      updateStatus = "available"
-      newVersion = info.latestVersion
-      downloadUrl = info.downloadUrl
-      releaseNotes = info.releaseNotes || ""
-      showUpdateModal = true
-    } else {
-      updateStatus = "uptodate"
+    try {
+      const info = await checkForUpdates(version, checkPrerelease)
+      if (info.hasUpdate) {
+        updateStatus = "available"
+        newVersion = info.latestVersion
+        downloadUrl = info.downloadUrl
+        releaseNotes = info.releaseNotes || ""
+        showUpdateModal = true
+      } else {
+        updateStatus = "uptodate"
+      }
+    } catch (error) {
+      console.error("Update check failed:", error)
+      updateStatus = "error"
+      toastMessage = $t("settings.update.error")
+      toastType = "error"
+      showToast = true
     }
     isCheckingUpdate = false
   }
@@ -777,6 +794,15 @@
   {downloadUrl}
   onDismiss={dismissUpdateModal}
   theme={effectiveTheme} />
+
+<!-- Toast Notification -->
+{#if showToast}
+  <Toast
+    message={toastMessage}
+    type={toastType}
+    theme={effectiveTheme}
+    onClose={() => (showToast = false)} />
+{/if}
 
 <style>
   .settings-card {
