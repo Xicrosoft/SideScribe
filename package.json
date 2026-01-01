@@ -1,7 +1,7 @@
 {
   "name": "side-scribe",
   "displayName": "SideScribe",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "AI Chat Table of Contents",
   "author": "Noah",
   "license": "MIT",
@@ -12,6 +12,7 @@
     "build:ci": "plasmo build",
     "package": "plasmo package",
     "test": "vitest run",
+    "test:ci": "vitest run --reporter=junit --outputFile=test-report.junit.xml",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
@@ -44,7 +45,7 @@
     "vitest": "^4.0.16"
   },
   "manifest": {
-    "version_name": "0.1.1 beta",
+    "version_name": "0.1.2-beta",
     "host_permissions": [
       "https://*/*"
     ],

@@ -1,4 +1,4 @@
-import { storage } from "./storage"
+import { storage, STORAGE_KEYS } from "./storage"
 
 export interface UpdateInfo {
     hasUpdate: boolean
@@ -27,8 +27,11 @@ export async function checkForUpdatesWithCooldown(currentVersion: string): Promi
         }
     }
 
+    // Get prerelease preference from storage (default: false)
+    const checkPrerelease = (await storage.get(STORAGE_KEYS.CHECK_PRERELEASE)) as boolean ?? false
+
     // Cooldown expired or no cache, perform fresh check
-    const info = await checkForUpdates(currentVersion)
+    const info = await checkForUpdates(currentVersion, checkPrerelease)
 
     // Cache the result
     await storage.set(LAST_CHECK_TIME_KEY, now)
@@ -40,10 +43,15 @@ export async function checkForUpdatesWithCooldown(currentVersion: string): Promi
 /**
  * Force check for updates (bypasses cooldown).
  * Used for manual "Check Now" button.
+ * @param includePrereleases - Whether to include pre-release versions
  */
-export async function checkForUpdates(currentVersion: string): Promise<UpdateInfo> {
+export async function checkForUpdates(
+    currentVersion: string,
+    includePrereleases: boolean = false
+): Promise<UpdateInfo> {
     try {
-        const response = await fetch("https://api.github.com/repos/Xicrosoft/SideScribe/releases/latest")
+        // Use /releases instead of /releases/latest to support prereleases
+        const response = await fetch("https://api.github.com/repos/Xicrosoft/SideScribe/releases")
 
         // Handle 404 (no releases yet) gracefully
         if (response.status === 404) {
@@ -64,15 +72,28 @@ export async function checkForUpdates(currentVersion: string): Promise<UpdateInf
             }
         }
 
-        const data = await response.json()
+        const releases = await response.json()
+
+        // Filter releases based on prerelease setting
+        const validReleases = releases.filter((release: any) =>
+            !release.draft && (includePrereleases || !release.prerelease)
+        )
+
+        if (validReleases.length === 0) {
+            console.log("No valid releases found")
+            return {
+                hasUpdate: false,
+                latestVersion: currentVersion,
+                downloadUrl: ""
+            }
+        }
+
+        // Get the first (latest) valid release
+        const data = validReleases[0]
         const latestTag = data.tag_name // e.g., "v0.1.0-beta" or "v1.0.0"
 
-        // Simple version comparison
-        // Removes 'v' prefix and compares semantic versions
-        const latest = cleanVersion(latestTag)
-        const current = cleanVersion(currentVersion)
-
-        const hasUpdate = compareVersions(latest, current) > 0
+        // Compare versions with pre-release support
+        const hasUpdate = compareVersions(latestTag, currentVersion) > 0
 
         // Construct download URL
         let downloadUrl = ""
@@ -101,18 +122,88 @@ export async function checkForUpdates(currentVersion: string): Promise<UpdateInf
     }
 }
 
-function cleanVersion(v: string): string {
-    return v.replace(/^v/, "").split("-")[0]
+/**
+ * Parse version string into components
+ * @example "v0.1.1-beta" -> { major: 0, minor: 1, patch: 1, prerelease: "beta" }
+ */
+export function parseVersion(v: string): { major: number; minor: number; patch: number; prerelease: string | null } {
+    const cleaned = v.replace(/^v/, "")
+    const [base, prerelease] = cleaned.split("-")
+    const [major, minor, patch] = base.split(".").map(Number)
+    return {
+        major: major || 0,
+        minor: minor || 0,
+        patch: patch || 0,
+        prerelease: prerelease || null
+    }
 }
 
-function compareVersions(v1: string, v2: string): number {
-    const pa = v1.split('.').map(Number);
-    const pb = v2.split('.').map(Number);
-    for (let i = 0; i < 3; i++) {
-        const na = pa[i] || 0;
-        const nb = pb[i] || 0;
-        if (na > nb) return 1;
-        if (nb > na) return -1;
+/**
+ * Compare two semver versions with pre-release support
+ * Pre-release versions are considered LOWER than stable versions
+ * @example "0.1.1-beta" < "0.1.1" < "0.1.2-alpha"
+ * @returns 1 if v1 > v2, -1 if v1 < v2, 0 if equal
+ */
+export function compareVersions(v1: string, v2: string): number {
+    const a = parseVersion(v1)
+    const b = parseVersion(v2)
+
+    // Compare major.minor.patch
+    if (a.major !== b.major) return a.major > b.major ? 1 : -1
+    if (a.minor !== b.minor) return a.minor > b.minor ? 1 : -1
+    if (a.patch !== b.patch) return a.patch > b.patch ? 1 : -1
+
+    // Same base version, compare pre-release
+    // No pre-release > any pre-release (stable wins)
+    if (a.prerelease === null && b.prerelease !== null) return 1
+    if (a.prerelease !== null && b.prerelease === null) return -1
+    if (a.prerelease === null && b.prerelease === null) return 0
+
+    // Both have pre-release, compare according to SemVer rules
+    return comparePrerelease(a.prerelease!, b.prerelease!)
+}
+
+/**
+ * Compare two SemVer pre-release identifiers according to SemVer 2.0.0 rules.
+ * See https://semver.org/#spec-item-11
+ */
+function comparePrerelease(aId: string, bId: string): number {
+    if (aId === bId) return 0
+
+    const aParts = aId.split(".")
+    const bParts = bId.split(".")
+    const maxLen = Math.max(aParts.length, bParts.length)
+
+    const isNumeric = (s: string): boolean => /^\d+$/.test(s)
+
+    for (let i = 0; i < maxLen; i++) {
+        const aPart = aParts[i]
+        const bPart = bParts[i]
+
+        // A smaller set of pre-release fields has lower precedence than a larger set,
+        // if all preceding identifiers are equal.
+        if (aPart === undefined) return -1
+        if (bPart === undefined) return 1
+
+        const aIsNum = isNumeric(aPart)
+        const bIsNum = isNumeric(bPart)
+
+        if (aIsNum && bIsNum) {
+            const aNum = parseInt(aPart, 10)
+            const bNum = parseInt(bPart, 10)
+            if (aNum !== bNum) return aNum > bNum ? 1 : -1
+            continue
+        }
+
+        // Numeric identifiers always have lower precedence than non-numeric identifiers.
+        if (aIsNum !== bIsNum) {
+            return aIsNum ? -1 : 1
+        }
+
+        if (aPart !== bPart) {
+            return aPart > bPart ? 1 : -1
+        }
     }
-    return 0;
+
+    return 0
 }

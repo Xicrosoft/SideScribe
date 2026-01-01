@@ -257,13 +257,7 @@
       }
     })
 
-    chrome.storage.onChanged.addListener((changes, areaName) => {
-      if (areaName === "sync" && changes[STORAGE_KEYS.TELEMETRY_ENABLED]) {
-        if (changes[STORAGE_KEYS.TELEMETRY_ENABLED].newValue === true) {
-          initSentry("sidepanel")
-        }
-      }
-    })
+    chrome.storage.onChanged.addListener(handleStorageChanged)
 
     // Check for updates with cooldown
     checkForUpdatesWithCooldown(version)
@@ -278,9 +272,22 @@
       })
   })
 
+  // Handle storage changes for telemetry setting
+  function handleStorageChanged(
+    changes: { [key: string]: chrome.storage.StorageChange },
+    areaName: string
+  ) {
+    if (areaName === "sync" && changes[STORAGE_KEYS.TELEMETRY_ENABLED]) {
+      if (changes[STORAGE_KEYS.TELEMETRY_ENABLED].newValue === true) {
+        initSentry("sidepanel")
+      }
+    }
+  }
+
   onDestroy(() => {
     chrome.tabs.onActivated.removeListener(handleTabActivated)
     chrome.tabs.onUpdated.removeListener(handleTabUpdated)
+    chrome.storage.onChanged.removeListener(handleStorageChanged)
   })
 
   function handleJump(event: CustomEvent) {

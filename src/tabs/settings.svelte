@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Toast from "../components/Toast.svelte"
   import UpdateModal from "../components/UpdateModal.svelte"
   import { initSentry } from "../lib/sentry"
   import {
@@ -56,12 +57,19 @@
 
   // Update State
   let autoCheckUpdates = true
+  let checkPrerelease = false
   let isCheckingUpdate = false
-  let updateStatus: "idle" | "checking" | "available" | "uptodate" = "idle"
+  let updateStatus: "idle" | "checking" | "available" | "uptodate" | "error" =
+    "idle"
   let newVersion = ""
   let downloadUrl = ""
   let releaseNotes = ""
   let showUpdateModal = false
+
+  // Toast state
+  let toastMessage = ""
+  let toastType: "info" | "success" | "error" = "info"
+  let showToast = false
 
   // Get version from manifest (synced with package.json)
   const version =
@@ -92,6 +100,12 @@
       const savedAutoCheck = await storage.get(STORAGE_KEYS.AUTO_CHECK_UPDATES)
       if (typeof savedAutoCheck === "boolean") {
         autoCheckUpdates = savedAutoCheck
+      }
+
+      // Load prerelease setting
+      const savedPrerelease = await storage.get(STORAGE_KEYS.CHECK_PRERELEASE)
+      if (typeof savedPrerelease === "boolean") {
+        checkPrerelease = savedPrerelease
       }
 
       if (autoCheckUpdates) {
@@ -142,9 +156,9 @@
     setTimeout(() => (cacheCleared = false), 2000)
   }
 
-  function toggleTocCache() {
+  async function toggleTocCache() {
     tocCacheEnabled = !tocCacheEnabled
-    storage.set(STORAGE_KEYS.TOC_CACHE_ENABLED, tocCacheEnabled)
+    await storage.set(STORAGE_KEYS.TOC_CACHE_ENABLED, tocCacheEnabled)
   }
 
   function setLanguage(lang: Language) {
@@ -177,13 +191,15 @@
 
   function openBugReport() {
     if (!telemetryEnabled) {
-      if (confirm($t("telemetry.prompt.enable") + "?")) {
-        toggleTelemetry()
-      }
+      toastMessage = $t("telemetry.prompt.enable") + "?"
+      toastType = "info"
+      showToast = true
+      // User needs to enable telemetry first
+      toggleTelemetry()
     } else {
-      alert(
-        "Please click the 'Report a Bug' button in the bottom-right corner of the page."
-      )
+      toastMessage = $t("settings.support.report.hint")
+      toastType = "info"
+      showToast = true
     }
   }
 
@@ -195,15 +211,23 @@
     if (isCheckingUpdate) return
     isCheckingUpdate = true
     updateStatus = "checking"
-    const info = await checkForUpdates(version)
-    if (info.hasUpdate) {
-      updateStatus = "available"
-      newVersion = info.latestVersion
-      downloadUrl = info.downloadUrl
-      releaseNotes = info.releaseNotes || ""
-      showUpdateModal = true
-    } else {
-      updateStatus = "uptodate"
+    try {
+      const info = await checkForUpdates(version, checkPrerelease)
+      if (info.hasUpdate) {
+        updateStatus = "available"
+        newVersion = info.latestVersion
+        downloadUrl = info.downloadUrl
+        releaseNotes = info.releaseNotes || ""
+        showUpdateModal = true
+      } else {
+        updateStatus = "uptodate"
+      }
+    } catch (error) {
+      console.error("Update check failed:", error)
+      updateStatus = "error"
+      toastMessage = $t("settings.update.error")
+      toastType = "error"
+      showToast = true
     }
     isCheckingUpdate = false
   }
@@ -212,9 +236,14 @@
     showUpdateModal = false
   }
 
-  function toggleAutoCheck() {
+  async function toggleAutoCheck() {
     autoCheckUpdates = !autoCheckUpdates
-    storage.set(STORAGE_KEYS.AUTO_CHECK_UPDATES, autoCheckUpdates)
+    await storage.set(STORAGE_KEYS.AUTO_CHECK_UPDATES, autoCheckUpdates)
+  }
+
+  async function togglePrerelease() {
+    checkPrerelease = !checkPrerelease
+    await storage.set(STORAGE_KEYS.CHECK_PRERELEASE, checkPrerelease)
   }
 
   function handleDownload() {
@@ -649,6 +678,50 @@
         </div>
       </div>
 
+      <!-- Advanced Update Settings Card -->
+      <div
+        class="settings-card p-4 rounded-2xl transition-all duration-200 animate-slideUp"
+        style="background: {tokens.bgSecondary}; border: 1px solid {tokens.border}; animation-delay: 0.25s;">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div
+              class="icon-box"
+              style="background: {isDark
+                ? 'rgba(168,85,247,0.15)'
+                : 'rgba(168,85,247,0.1)'};  color: #a855f7;">
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-sm font-medium">
+                {$t("settings.update.prerelease")}
+              </div>
+              <div class="text-xs" style="color: {tokens.textSecondary};">
+                {$t("settings.update.prerelease.desc")}
+              </div>
+            </div>
+          </div>
+          <button
+            on:click={togglePrerelease}
+            class="toggle-switch"
+            style="background: {checkPrerelease ? '#0285ff' : '#676767'};">
+            <div
+              class="toggle-knob"
+              style="left: {checkPrerelease ? '22px' : '2px'};">
+            </div>
+          </button>
+        </div>
+      </div>
+
       <!-- Support Card -->
       <div
         class="settings-card p-4 rounded-2xl transition-all duration-200 animate-slideUp"
@@ -721,6 +794,15 @@
   {downloadUrl}
   onDismiss={dismissUpdateModal}
   theme={effectiveTheme} />
+
+<!-- Toast Notification -->
+{#if showToast}
+  <Toast
+    message={toastMessage}
+    type={toastType}
+    theme={effectiveTheme}
+    onClose={() => (showToast = false)} />
+{/if}
 
 <style>
   .settings-card {
