@@ -69,5 +69,10 @@
     "update.modal.latest": "Dernière",
     "update.modal.notes": "Notes de version",
     "update.modal.download": "Télécharger",
-    "update.modal.dismiss": "Plus tard"
+    "update.modal.dismiss": "Plus tard",
+    "settings.translate": "Help Translate",
+    "settings.translate.desc": "Help us translate SideScribe into your language",
+    "settings.translate.start": "Start Translating",
+    "settings.translate.active": "Translation Mode Active",
+    "settings.translate.stop": "Exit"
 }
