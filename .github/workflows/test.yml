@@ -42,6 +42,14 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Vitest Tests
+          path: test-report.junit.xml
+          reporter: jest-junit
+
       - name: Run tests with coverage
         run: pnpm test:coverage
 
